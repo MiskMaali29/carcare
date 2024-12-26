@@ -1,0 +1,13 @@
+import 'package:flutter/material.dart';
+
+class AppColors {
+  static const Color primary = Color(0xFF026DFE); // أزرق 
+  static const Color secondary = Color(0xFFFE5602); // برتقالي
+  static const Color background = Color(0xFFBDDBFF); //  فاتح
+  static const Color textPrimary = Color(0xFF212121); // 
+  static const Color textSecondary = Color(0xFF757575); //  غامق
+  static const Color error = Color(0xFFD32F2F); // 
+  static const Color babyblue = Color(0xFFCCE2FF); // ازرق فاتح 
+  static const Color babyorange = Color(0xFFFF6A20); // ازرق فاتح 
+  
+}
