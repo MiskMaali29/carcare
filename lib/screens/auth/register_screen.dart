@@ -4,7 +4,7 @@ import '../../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-
+  
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -35,7 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please accept the Terms & Conditions')),
+       const SnackBar(content: Text('Please accept the Terms & Conditions')),
       );
       return;
     }
@@ -51,10 +51,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           password: _passwordController.text,
         );
        Navigator.pushReplacementNamed(
-         context,
-         '/home',
-         arguments: _usernameController.text, // Pass the username
-       );
+        context,
+       '/home',
+        arguments: _usernameController.text, // Pass the username
+        );
 
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -71,12 +71,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        title:const Text('Sign Up'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF026DFE),
+        backgroundColor:const Color(0xFF026DFE),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding:const EdgeInsets.all(24.0),
         child: Column(
           children: [
             // Add a logo
@@ -87,14 +87,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: 100,
               ),
             ),
-            const SizedBox(height: 20),
+           const SizedBox(height: 20),
             Text(
               'Create Your Account',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+           const SizedBox(height: 10),
             Text(
               'Please fill in the form to register',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 30),
+          const  SizedBox(height: 30),
 
             // Registration Form
             Form(
@@ -110,35 +110,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 children: [
                   _buildTextField(_usernameController, 'Username', Icons.person),
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
                   _buildTextField(_fullNameController, 'Full Name', Icons.person_outline),
-                  const SizedBox(height: 16),
+                const SizedBox(height: 16),
                   _buildTextField(_emailController, 'Email', Icons.email, isEmail: true),
-                  const SizedBox(height: 16),
+                const  SizedBox(height: 16),
                   _buildTextField(_phoneController, 'Phone', Icons.phone, isPhone: true),
-                  const SizedBox(height: 16),
+                const  SizedBox(height: 16),
                   _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
-                  const SizedBox(height: 16),
+                const  SizedBox(height: 16),
                   _buildTextField(
                     _confirmPasswordController,
                     'Confirm Password',
                     Icons.lock,
                     isPassword: true,
                   ),
-                  const SizedBox(height: 16),
+                const  SizedBox(height: 16),
                   CheckboxListTile(
                     value: _termsAccepted,
                     onChanged: (value) => setState(() => _termsAccepted = value ?? false),
-                    title: const Text('I agree with the Terms & Conditions'),
+                    title:const Text('I agree with the Terms & Conditions'),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
-                  const SizedBox(height: 20),
+                 const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF026DFE),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      minimumSize: const Size(double.infinity, 48),
+                      backgroundColor:const Color(0xFF026DFE),
+                      padding:const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize:const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

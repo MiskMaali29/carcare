@@ -18,34 +18,30 @@ dependencies:
   firebase_storage: ^12.3.7
   http: ^1.1.0
   provider: ^6.1.1
- 
-
-
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
 
-  
-
 flutter:
   uses-material-design: true
   
   assets:
-  - assets/images/AppBar48.png
-  - assets/images/car_image.png
-  - assets/images/hi.png
-  - assets/images/home_screenfix.png
-  - assets/images/home.png
-  - assets/images/logo.png
-  - assets/images/logo192.png
-  - assets/images/selectpic.png
-  - assets/images/robot.png
-  - assets/images/splash_screenlogo.png
-  - assets/images/splash200.png
-  - assets/images/welcom_screenlogo.png
-  - assets/images/welcom100.png
+    - assets/images/AppBar48.png
+    - assets/images/car_image.png
+    - assets/images/hi.png
+    - assets/images/test.png
+    - assets/images/home_screenfix.png
+    - assets/images/home.png
+    - assets/images/logo.png
+    - assets/images/logo192.png
+    - assets/images/selectpic.png
+    - assets/images/robot.png
+    - assets/images/splash_screenlogo.png
+    - assets/images/splash200.png
+    - assets/images/welcom_screenlogo.png
+    - assets/images/welcom100.png
   
   fonts:
     - family: Sen
@@ -55,5 +51,3 @@ flutter:
           weight: 700
         - asset: assets/fonts/Sen-Medium.ttf
           weight: 300
-
-

@@ -21,9 +21,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Authentication App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
       initialRoute: '/welcome',
       routes: {
         '/welcome': (context) => const WelcomeScreen(),

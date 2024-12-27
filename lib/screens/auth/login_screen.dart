@@ -4,6 +4,7 @@ import '../../services/auth_service.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -31,10 +32,10 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text,
         );
        Navigator.pushReplacementNamed(
-        context,
-        '/home',
-        arguments: _emailOrUsernameController.text, // Pass the username or email
-      );
+       context,
+      '/home',
+  arguments: _emailOrUsernameController.text, // Pass the username or email
+);
 
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -51,9 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title:const Text('Login'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF026DFE),
+        backgroundColor:const Color(0xFF026DFE),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -67,14 +68,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 120,
               ),
             ),
-            const SizedBox(height: 30),
+           const SizedBox(height: 30),
             Text(
               'Welcome Back!',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
+           const SizedBox(height: 10),
             Text(
               'Login to your account to continue.',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -95,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Username or Email',
                       hintText: 'Enter your username or email',
-                      prefixIcon: const Icon(Icons.person),
+                      prefixIcon:const Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -107,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 20),
+                 const SizedBox(height: 20),
 
                   // Password Field
                   TextFormField(
@@ -116,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Password',
                       hintText: 'Enter your password',
-                      prefixIcon: const Icon(Icons.lock),
+                      prefixIcon:const Icon(Icons.lock),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -128,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 10),
+                 const SizedBox(height: 10),
 
                   // Forget Password Link
                   Align(
@@ -137,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         // Add navigation to reset password screen
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                         const SnackBar(
                             content: Text('Reset Password is under construction.'),
                           ),
                         );
@@ -151,15 +152,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                 const SizedBox(height: 20),
 
                   // Login Button
                   ElevatedButton(
   onPressed: _isLoading ? null : _login,
   style: ElevatedButton.styleFrom(
-    backgroundColor: const Color(0xFF026DFE), // Updated property
-    padding: const EdgeInsets.symmetric(vertical: 14),
-    minimumSize: const Size(double.infinity, 48),
+    backgroundColor:const Color(0xFF026DFE), // Updated property
+    padding:const EdgeInsets.symmetric(vertical: 14),
+    minimumSize:const Size(double.infinity, 48),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(8),
     ),
@@ -169,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
           color: Colors.white,
           strokeWidth: 2,
         )
-      : const Text(
+      :const Text(
           'Login',
           style: TextStyle(
             fontSize: 16,
@@ -178,13 +179,13 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
 ),
 
-                  const SizedBox(height: 20),
+                 const SizedBox(height: 20),
 
                   // Signup Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
+                     const Text(
                         'Don’t have an account?',
                         style: TextStyle(fontSize: 14),
                       ),
@@ -192,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.pushNamed(context, '/signup');
                         },
-                        child: const Text(
+                        child:const Text(
                           'Sign Up now',
                           style: TextStyle(
                             color: Color(0xFF026DFE),

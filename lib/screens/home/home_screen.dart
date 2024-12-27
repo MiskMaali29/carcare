@@ -18,11 +18,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       body: Stack(
         children: [
-           
-          // Background image
+           // Background image
           Positioned.fill(
             child: Image.asset(
-              'assets/images/hi.png', // Replace with your background image path
+              'assets/images/test.png', // Replace with your background image path
               fit: BoxFit.cover,
             ),
           ),
@@ -59,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Excellence',
                   style: TextStyle(
                     fontSize: 20,
-                    color: Color(0xFFFF6A20),
+                    color:const Color(0xFFFF6A20),
                   ),
                 ),
               ],

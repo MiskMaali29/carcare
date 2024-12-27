@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/appointment_service.dart'; // تأكد من استيراد الخدمة
 
 
 class BookAppointmentScreen extends StatefulWidget {
@@ -9,163 +10,165 @@ class BookAppointmentScreen extends StatefulWidget {
 }
 
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _cardNumberController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
+  final _appointmentService = AppointmentService();
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
-  final TextEditingController _serviceController = TextEditingController();
-  final TextEditingController _notesController = TextEditingController();
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked;
-      });
-    }
-  }
+  // الحقول الافتراضية للقوائم المنسدلة
+  String _selectedPaymentStatus = 'Not Paid';
+  String _selectedServiceStatus = 'Booked';
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: selectedTime,
-    );
-    if (picked != null && picked != selectedTime) {
-      setState(() {
-        selectedTime = picked;
-      });
+  Future<void> _bookAppointment() async {
+    if (_formKey.currentState!.validate()) {
+      final appointmentDate = "${selectedDate.toLocal()}".split(' ')[0];
+      final appointmentTime = selectedTime.format(context);
+
+      // إنشاء بيانات الحجز
+      final appointmentData = {
+        'name': _nameController.text,
+        'card_number': _cardNumberController.text,
+        'phone_number': _phoneNumberController.text,
+        'appointment_date': appointmentDate,
+        'appointment_time': appointmentTime,
+        'payment_status': _selectedPaymentStatus, // القيمة المختارة من القائمة
+        'service_status': _selectedServiceStatus, // القيمة المختارة من القائمة
+      };
+
+      try {
+        await _appointmentService.addAppointment(appointmentData); // حفظ البيانات في Firestore
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Appointment booked successfully!')),
+        );
+        Navigator.pop(context); // العودة إلى الشاشة السابقة
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to book appointment: $e')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Book Appointment'),
-        backgroundColor: const Color(0xFF19A197),
-      ),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: const Text('Book Appointment')),
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select Service',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _serviceController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter service type',
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Select Date',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: () => _selectDate(context),
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${selectedDate.toLocal()}".split(' ')[0],
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const Icon(Icons.calendar_today),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Select Time',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: () => _selectTime(context),
-              child: Container(
-                padding: const EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      selectedTime.format(context),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const Icon(Icons.access_time),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Additional Notes',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _notesController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Enter any additional notes',
-              ),
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF725E),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                ),
-                onPressed: () {
-                  // TODO: Implement appointment booking logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Appointment booked successfully!'),
-                    ),
-                  );
-                  Navigator.pop(context);
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
                 },
-                child: const Text(
-                  'Book Appointment',
-                  style: TextStyle(fontSize: 18),
-                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _cardNumberController,
+                decoration: const InputDecoration(labelText: 'Card Number'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your card number';
+                  } else if (value.length != 16) {
+                    return 'Card number must be 16 digits';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _phoneNumberController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedPaymentStatus,
+                decoration: const InputDecoration(labelText: 'Payment Status'),
+                items: [
+                  DropdownMenuItem(value: 'Paid', child: Text('Paid')),
+                  DropdownMenuItem(value: 'Not Paid', child: Text('Not Paid')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPaymentStatus = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedServiceStatus,
+                decoration: const InputDecoration(labelText: 'Service Status'),
+                items: [
+                  DropdownMenuItem(value: 'Booked', child: Text('Booked')),
+                  DropdownMenuItem(value: 'In Progress', child: Text('In Progress')),
+                  DropdownMenuItem(value: 'Completed', child: Text('Completed')),
+                  DropdownMenuItem(value: 'Cancelled', child: Text('Cancelled')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedServiceStatus = value!;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime(2100),
+                  );
+                  if (pickedDate != null && pickedDate != selectedDate) {
+                    setState(() {
+                      selectedDate = pickedDate;
+                    });
+                  }
+                },
+                child: const Text('Select Appointment Date'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () async {
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: selectedTime,
+                  );
+                  if (pickedTime != null && pickedTime != selectedTime) {
+                    setState(() {
+                      selectedTime = pickedTime;
+                    });
+                  }
+                },
+                child: const Text('Select Appointment Time'),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _bookAppointment,
+                child: const Text('Book Appointment'),
+              ),
+            ],
+          ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _serviceController.dispose();
-    _notesController.dispose();
-    super.dispose();
   }
 }
