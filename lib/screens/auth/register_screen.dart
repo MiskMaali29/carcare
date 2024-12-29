@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-  
+
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -35,7 +34,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (!_termsAccepted) {
       ScaffoldMessenger.of(context).showSnackBar(
-       const SnackBar(content: Text('Please accept the Terms & Conditions')),
+        const SnackBar(content: Text('Please accept the Terms & Conditions')),
       );
       return;
     }
@@ -44,18 +43,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() => _isLoading = true);
       try {
         await _authService.registerUser(
-          username: _usernameController.text,
-          fullName: _fullNameController.text,
-          email: _emailController.text,
-          phone: _phoneController.text,
+          username: _usernameController.text.trim(),
+          fullName: _fullNameController.text.trim(),
+          email: _emailController.text.trim(),
+          phone: _phoneController.text.trim(),
           password: _passwordController.text,
         );
-       Navigator.pushReplacementNamed(
-        context,
-       '/home',
-        arguments: _usernameController.text, // Pass the username
-        );
 
+        Navigator.pushReplacementNamed(
+          context,
+          '/home',
+          arguments: _usernameController.text.trim(),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -71,74 +70,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title:const Text('Sign Up'),
+        title: const Text('Sign Up'),
         centerTitle: true,
-        backgroundColor:const Color(0xFF026DFE),
+        backgroundColor: const Color(0xFF026DFE),
       ),
       body: SingleChildScrollView(
-        padding:const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Add a logo
             Center(
               child: Image.asset(
-                'assets/images/welcom100.png', // Replace with your logo path
+                'assets/images/welcom100.png',
                 height: 100,
                 width: 100,
               ),
             ),
-           const SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               'Create Your Account',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
-           const SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Please fill in the form to register',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
-          const  SizedBox(height: 30),
-
-            // Registration Form
+            const SizedBox(height: 30),
             Form(
               key: _formKey,
               child: Column(
                 children: [
                   _buildTextField(_usernameController, 'Username', Icons.person),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildTextField(_fullNameController, 'Full Name', Icons.person_outline),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildTextField(_emailController, 'Email', Icons.email, isEmail: true),
-                const  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildTextField(_phoneController, 'Phone', Icons.phone, isPhone: true),
-                const  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
-                const  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   _buildTextField(
                     _confirmPasswordController,
                     'Confirm Password',
                     Icons.lock,
                     isPassword: true,
                   ),
-                const  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   CheckboxListTile(
                     value: _termsAccepted,
                     onChanged: (value) => setState(() => _termsAccepted = value ?? false),
-                    title:const Text('I agree with the Terms & Conditions'),
+                    title: GestureDetector(
+                      onTap: () {
+                        // Navigate to Terms & Conditions
+                        Navigator.pushNamed(context, '/terms');
+                      },
+                      child: const Text(
+                        'I agree with the Terms & Conditions',
+                        style: TextStyle(decoration: TextDecoration.underline),
+                      ),
+                    ),
                     controlAffinity: ListTileControlAffinity.leading,
                   ),
-                 const SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:const Color(0xFF026DFE),
-                      padding:const EdgeInsets.symmetric(vertical: 14),
-                      minimumSize:const Size(double.infinity, 48),
+                      backgroundColor: const Color(0xFF026DFE),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -180,8 +183,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
         }
-        if (isEmail && !value.contains('@')) {
+        if (isEmail && !RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(value)) {
           return 'Enter a valid email';
+        }
+        if (isPhone && !RegExp(r'^\d{10,15}$').hasMatch(value)) {
+          return 'Enter a valid phone number';
         }
         if (isPassword && value.length < 6) {
           return 'Password must be at least 6 characters';

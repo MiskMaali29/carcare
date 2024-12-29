@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../services/appointment_service.dart'; // تأكد من استيراد الخدمة
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/appointment_service.dart';
+import 'view_appointments_screen.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
   const BookAppointmentScreen({Key? key}) : super(key: key);
@@ -13,37 +14,35 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _cardNumberController = TextEditingController();
+  final _chassisNumberController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   final _appointmentService = AppointmentService();
   DateTime selectedDate = DateTime.now();
-  TimeOfDay selectedTime = TimeOfDay.now();
-
-  // الحقول الافتراضية للقوائم المنسدلة
-  String _selectedPaymentStatus = 'Not Paid';
-  String _selectedServiceStatus = 'Booked';
+  String? selectedVehicleType;
+  String? selectedServiceId;
+  String? _selectedServiceStatus = 'Booked'; // الحالة الافتراضية
+  String? selectedTimeSlot;
 
   Future<void> _bookAppointment() async {
     if (_formKey.currentState!.validate()) {
-      final appointmentDate = "${selectedDate.toLocal()}".split(' ')[0];
-      final appointmentTime = selectedTime.format(context);
-
-      // إنشاء بيانات الحجز
       final appointmentData = {
         'name': _nameController.text,
         'card_number': _cardNumberController.text,
+        'chassis_number': _chassisNumberController.text,
         'phone_number': _phoneNumberController.text,
-        'appointment_date': appointmentDate,
-        'appointment_time': appointmentTime,
-        'payment_status': _selectedPaymentStatus, // القيمة المختارة من القائمة
-        'service_status': _selectedServiceStatus, // القيمة المختارة من القائمة
+        'vehicle_type': selectedVehicleType,
+        'service_id': selectedServiceId,
+        'appointment_date': selectedDate,
+        'appointment_time': selectedTimeSlot,
+        'service_status': _selectedServiceStatus, // الحالة المحددة
       };
 
       try {
-        await _appointmentService.addAppointment(appointmentData); // حفظ البيانات في Firestore
+        await _appointmentService.addAppointment(appointmentData);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Appointment booked successfully!')),
         );
-        Navigator.pop(context); // العودة إلى الشاشة السابقة
+        Navigator.pop(context);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to book appointment: $e')),
@@ -80,36 +79,72 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your card number';
-                  } else if (value.length != 16) {
-                    return 'Card number must be 16 digits';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _phoneNumberController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-                keyboardType: TextInputType.phone,
+                controller: _chassisNumberController,
+                decoration: const InputDecoration(labelText: 'Chassis Number'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your phone number';
+                    return 'Please enter your chassis number';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedPaymentStatus,
-                decoration: const InputDecoration(labelText: 'Payment Status'),
-                items: [
-                  DropdownMenuItem(value: 'Paid', child: Text('Paid')),
-                  DropdownMenuItem(value: 'Not Paid', child: Text('Not Paid')),
-                ],
+                value: selectedVehicleType,
+                decoration: const InputDecoration(labelText: 'Vehicle Type'),
+                items: ['Hybrid/Electric', 'Sedan', 'SUV', 'Truck']
+                    .map((type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(type),
+                        ))
+                    .toList(),
                 onChanged: (value) {
                   setState(() {
-                    _selectedPaymentStatus = value!;
+                    selectedVehicleType = value;
                   });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a vehicle type';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('services').snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return CircularProgressIndicator();
+                  }
+                  final services = snapshot.data!.docs;
+                  return DropdownButtonFormField<String>(
+                    value: selectedServiceId,
+                    decoration: const InputDecoration(labelText: 'Service Type'),
+                    items: services.map((service) {
+                      return DropdownMenuItem(
+                        value: service.id,
+                        child: Text(service['name']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedServiceId = value;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a service type';
+                      }
+                      return null;
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 16),
@@ -137,34 +172,49 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                     firstDate: DateTime.now(),
                     lastDate: DateTime(2100),
                   );
-                  if (pickedDate != null && pickedDate != selectedDate) {
+                  if (pickedDate != null) {
                     setState(() {
                       selectedDate = pickedDate;
                     });
                   }
                 },
-                child: const Text('Select Appointment Date'),
+                child: Text(
+                  'Select Date: ${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+                ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () async {
-                  final pickedTime = await showTimePicker(
+                  final TimeOfDay? pickedTime = await showTimePicker(
                     context: context,
-                    initialTime: selectedTime,
+                    initialTime: TimeOfDay.now(),
                   );
-                  if (pickedTime != null && pickedTime != selectedTime) {
+
+                  if (pickedTime != null) {
                     setState(() {
-                      selectedTime = pickedTime;
+                      selectedTimeSlot = pickedTime.format(context);
                     });
                   }
                 },
-                child: const Text('Select Appointment Time'),
+                child: Text(selectedTimeSlot == null
+                    ? 'Select Appointment Time'
+                    : 'Time: $selectedTimeSlot'),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _bookAppointment,
                 child: const Text('Book Appointment'),
               ),
+              ElevatedButton(
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ViewAppointmentsScreen()),
+    );
+  },
+  child: const Text('View Appointments'),
+),
+
             ],
           ),
         ),

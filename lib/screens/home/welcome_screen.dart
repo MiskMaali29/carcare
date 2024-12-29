@@ -1,7 +1,58 @@
+// lib/screens/home/welcome_screen.dart
+
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
+
+  void _showUserTypeDialog(BuildContext context, bool isLogin) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isLogin ? 'Choose User Type' : 'Choose Registration Type'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    isLogin ? '/login_customer' : '/signup',
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF026DFE),
+                ),
+                child: const Text(
+                  'Customer',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    isLogin ? '/login_company' : '/company_signup',
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF026DFE),
+                ),
+                child: const Text(
+                  'Company',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +73,6 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
           ),
-
           // Main content
           SingleChildScrollView(
             child: Column(
@@ -32,7 +82,7 @@ class WelcomeScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.only(top: 80),
                   child: Image.asset(
-                    'assets/images/selectpic.png', // Replace with your actual image path
+                    'assets/images/selectpic.png',
                     height: 220,
                     fit: BoxFit.contain,
                   ),
@@ -59,7 +109,6 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40),
                   child: Container(
@@ -83,16 +132,13 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 // Buttons Section
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40.0),
                   child: Column(
                     children: [
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/login');
-                        },
+                        onPressed: () => _showUserTypeDialog(context, true), // for login
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF026DFE),
                           shape: RoundedRectangleBorder(
@@ -114,9 +160,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/signup');
-                        },
+                        onPressed: () => _showUserTypeDialog(context, false), // for signup
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           shape: RoundedRectangleBorder(

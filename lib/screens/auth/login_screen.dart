@@ -1,16 +1,14 @@
+import 'package:carcare/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
-  
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   final _emailOrUsernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -27,20 +25,24 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        await _authService.loginUser(
-          emailOrUsername: _emailOrUsernameController.text,
-          password: _passwordController.text,
-        );
-       Navigator.pushReplacementNamed(
-       context,
-      '/home',
-  arguments: _emailOrUsernameController.text, // Pass the username or email
-);
+        final emailOrUsername = _emailOrUsernameController.text.trim().toLowerCase();
+        final password = _passwordController.text;
 
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+        // Authenticate using AuthService
+        await AuthService().loginUser(
+          emailOrUsername: emailOrUsername,
+          password: password,
         );
+
+        Navigator.pushReplacementNamed(context, '/home', arguments: emailOrUsername);
+      } catch (e) {
+        String errorMessage = 'An error occurred';
+        if (e.toString().contains('user-not-found')) {
+          errorMessage = 'No account found with this email or username.';
+        } else if (e.toString().contains('wrong-password')) {
+          errorMessage = 'Incorrect password. Please try again.';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
       } finally {
         setState(() => _isLoading = false);
       }
@@ -52,54 +54,44 @@ class _LoginScreenState extends State<LoginScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title:const Text('Login'),
+        title: const Text('Customer Login'),
         centerTitle: true,
-        backgroundColor:const Color(0xFF026DFE),
+        backgroundColor: const Color(0xFF026DFE),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            // Add a logo
             Center(
               child: Image.asset(
-                'assets/images/welcom100.png', // Replace with your logo path
+                'assets/images/welcom100.png',
                 height: 120,
                 width: 120,
               ),
             ),
-           const SizedBox(height: 30),
+            const SizedBox(height: 30),
             Text(
               'Welcome Back!',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
-           const SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               'Login to your account to continue.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),
-
-            // Login Form
             Form(
               key: _formKey,
               child: Column(
                 children: [
-                  // Username/Email Field
                   TextFormField(
                     controller: _emailOrUsernameController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Username or Email',
                       hintText: 'Enter your username or email',
-                      prefixIcon:const Icon(Icons.person),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      prefixIcon: Icon(Icons.person),
+                      border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -108,19 +100,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                 const SizedBox(height: 20),
-
-                  // Password Field
+                  const SizedBox(height: 20),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: true,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Password',
                       hintText: 'Enter your password',
-                      prefixIcon:const Icon(Icons.lock),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      prefixIcon: Icon(Icons.lock),
+                      border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -129,77 +117,36 @@ class _LoginScreenState extends State<LoginScreen> {
                       return null;
                     },
                   ),
-                 const SizedBox(height: 10),
-
-                  // Forget Password Link
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        // Add navigation to reset password screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                         const SnackBar(
-                            content: Text('Reset Password is under construction.'),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
-                          color: Color(0xFF026DFE),
-                          fontSize: 14,
-                        ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF026DFE),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
-                 const SizedBox(height: 20),
-
-                  // Login Button
-                  ElevatedButton(
-  onPressed: _isLoading ? null : _login,
-  style: ElevatedButton.styleFrom(
-    backgroundColor:const Color(0xFF026DFE), // Updated property
-    padding:const EdgeInsets.symmetric(vertical: 14),
-    minimumSize:const Size(double.infinity, 48),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
-  ),
-  child: _isLoading
-      ? const CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 2,
-        )
-      :const Text(
-          'Login',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-),
-
-                 const SizedBox(height: 20),
-
-                  // Signup Link
+                  const SizedBox(height: 10),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                     const Text(
-                        'Don’t have an account?',
-                        style: TextStyle(fontSize: 14),
-                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushNamed(context, '/signup');
                         },
-                        child:const Text(
-                          'Sign Up now',
-                          style: TextStyle(
-                            color: Color(0xFF026DFE),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: const Text('Sign Up'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/forget_password');
+                        },
+                        child: const Text('Forgot Password?'),
                       ),
                     ],
                   ),
