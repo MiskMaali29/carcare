@@ -1,4 +1,5 @@
-import 'package:carcare/services/auth_service.dart';
+
+import 'package:carcare/screens/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {

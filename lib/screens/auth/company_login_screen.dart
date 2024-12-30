@@ -1,6 +1,7 @@
 // lib/screens/company/company_login_screen.dart
 
-import 'package:carcare/services/company_service.dart';
+
+import 'package:carcare/screens/services/company_service.dart';
 import 'package:flutter/material.dart';
 
 

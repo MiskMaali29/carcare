@@ -2,19 +2,24 @@
 
 import 'package:carcare/screens/auth/company_login_screen.dart';
 import 'package:carcare/screens/auth/company_signup_screen.dart';
+import 'package:carcare/screens/company/company_view_appointments_screen.dart';
+import 'package:carcare/screens/home/view_appointments_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';  // Add this import
 import 'firebase_options.dart';
+import 'screens/company/company_dashboard_screen.dart';
+import 'screens/company/manage_services_screen.dart';
 
 // Authentication screens
-import 'screens/auth/login_screen.dart';              // Customer login
-import 'screens/auth/register_screen.dart';           // Customer signup
-
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
 
 // Main screens
-import 'screens/home/welcome_screen.dart';            // Welcome screen
-import 'screens/home/home_screen.dart';               // Customer home
-import 'screens/company/company_dashboard_screen.dart'; // Company dashboard
+import 'screens/home/welcome_screen.dart';
+import 'screens/home/home_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,15 +42,60 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF026DFE),
         ),
+        // Add more theme customization
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF026DFE),
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF026DFE),
+            foregroundColor: Colors.white,
+          ),
+        ),
       ),
-      // Start with welcome screen
-      initialRoute: '/welcome',
+      // Start with welcome screen or check auth state
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
+          
+          // If not logged in, show welcome screen
+          if (!snapshot.hasData) {
+            return const WelcomeScreen();
+          }
+          
+          // Check user type and redirect accordingly
+          return FutureBuilder<DocumentSnapshot>(
+            future: FirebaseFirestore.instance
+                .collection('companies')
+                .doc(snapshot.data!.uid)
+                .get(),
+            builder: (context, companySnapshot) {
+              if (companySnapshot.hasData && companySnapshot.data!.exists) {
+                // User is a company
+                return CompanyDashboardScreen(
+                  username: companySnapshot.data!.get('company_name') ?? 'Company',
+                );
+              } else {
+                // User is a customer
+                return HomeScreen(username: snapshot.data!.email ?? 'User');
+              }
+            },
+          );
+        },
+      ),
       routes: {
-        '/welcome': (context) => const WelcomeScreen(),
+      ' /welcome': (context) => const WelcomeScreen(),
         '/login_customer': (context) => const LoginScreen(),
         '/login_company': (context) => const CompanyLoginScreen(),
         '/signup': (context) => const RegisterScreen(),
         '/company_signup': (context) => const CompanyRegisterScreen(),
+        '/company_appointments': (context) => const CompanyViewAppointmentsScreen(),
+        '/user_appointments': (context) =>  ViewAppointmentsScreen(),
+        '/manage_services': (context) => const ManageServicesScreen(),
       },
       onGenerateRoute: (settings) {
         // Handle routes that need parameters
@@ -72,7 +122,6 @@ class MyApp extends StatelessWidget {
               builder: (context) => Scaffold(
                 appBar: AppBar(
                   title: const Text('Page Not Found'),
-                  backgroundColor: const Color(0xFF026DFE),
                 ),
                 body: const Center(
                   child: Text(
@@ -83,6 +132,17 @@ class MyApp extends StatelessWidget {
               ),
             );
         }
+      },
+      // Add error handling
+      builder: (context, child) {
+        return Material(
+          child: Stack(
+            children: [
+              child!,
+              // You can add global error handling or overlays here
+            ],
+          ),
+        );
       },
     );
   }

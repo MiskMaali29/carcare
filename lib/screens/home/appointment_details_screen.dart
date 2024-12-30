@@ -1,5 +1,6 @@
+import 'package:carcare/screens/services/appointment_service.dart';
 import 'package:flutter/material.dart';
-import '../../services/appointment_service.dart';
+
 import '../../models/appointment.dart';
 
 class AppointmentDetailsScreen extends StatelessWidget {
