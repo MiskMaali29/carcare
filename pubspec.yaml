@@ -32,6 +32,7 @@ flutter:
   assets:
     - assets/images/AppBar48.png
     - assets/images/car_image.png
+    - assets/images/background.png
     - assets/images/hi.png
     - assets/images/test.png
     - assets/images/home_screenfix.png

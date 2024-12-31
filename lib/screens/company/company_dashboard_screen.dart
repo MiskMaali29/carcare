@@ -1,10 +1,9 @@
-// lib/screens/company/company_dashboard_screen.dart
 
+import 'package:carcare/screens/home/welcome_screen.dart';
 import 'package:carcare/screens/services/appointment_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 
 class CompanyDashboardScreen extends StatefulWidget {
   final String username;
@@ -27,83 +26,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
         .snapshots();
   }
 
-  Widget _buildStatsCard(String title, String value) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF026DFE),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
- Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.build),
-            label: const Text('Manage Services'),
-            onPressed: () {
-              Navigator.pushNamed(context, '/manage_services');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF026DFE),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.visibility),
-            label: const Text('View Appointments'),
-            onPressed: () {
-              Navigator.pushNamed(context, '/company_appointments');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF026DFE),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Add Service'),
-            onPressed: () {
-              // Add service functionality
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[300],
-              foregroundColor: Colors.black87,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-        ],
-      ),
-    );
-}
 
 
   Widget _buildAppointmentTable(List<QueryDocumentSnapshot> appointments) {
@@ -205,92 +128,211 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text('Welcome, ${widget.username}'),
-        backgroundColor: const Color(0xFF026DFE),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacementNamed(context, '/welcome');
-            },
-          ),
-        ],
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/background.png'),
+          fit: BoxFit.cover,
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: getAppointmentsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.4),
+        ),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: getAppointmentsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          final appointments = snapshot.data?.docs ?? [];
-          final totalAppointments = appointments.length;
-          final activeServices = appointments
-              .where((doc) => (doc.data() as Map<String, dynamic>)['service_status'] == 'In Progress')
-              .length;
-          final uniqueClients = appointments
-              .map((doc) => (doc.data() as Map<String, dynamic>)['user_id'])
-              .toSet()
-              .length;
+            final appointments = snapshot.data?.docs ?? [];
+            final totalAppointments = appointments.length;
+            final activeServices = appointments
+                .where((doc) => (doc.data() as Map<String, dynamic>)['service_status'] == 'In Progress')
+                .length;
+            final uniqueClients = appointments
+                .map((doc) => (doc.data() as Map<String, dynamic>)['user_id'])
+                .toSet()
+                .length;
 
-          return Column(
-            children: [
-              // Stats Row
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(child: _buildStatsCard('Total Appointments', totalAppointments.toString())),
-                    const SizedBox(width: 8),
-                    Expanded(child: _buildStatsCard('Services Offered', activeServices.toString())),
-                    const SizedBox(width: 8),
-                    Expanded(child: _buildStatsCard('Total Clients', uniqueClients.toString())),
-                  ],
+            return Column(
+              children: [
+                // Custom AppBar
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: const Color(0xFF026DFE).withOpacity(0.9),
+                  child: SafeArea(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Welcome, ${widget.username}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                       IconButton(
+                       icon: const Icon(Icons.logout, color: Colors.white),
+                       onPressed: () async {
+                         await FirebaseAuth.instance.signOut();
+                      Navigator.pushAndRemoveUntil(
+                       context,
+                        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                       (route) => false,
+                            );
+                        },
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
 
-              _buildActionButtons(),
-
-              if (_showAppointments) ...[
+                // Stats Cards with Glass Effect
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search by Name or ID',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildGlassStatsCard('Total Appointments', totalAppointments.toString()),
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildGlassStatsCard('Services Offered', activeServices.toString()),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildGlassStatsCard('Total Clients', uniqueClients.toString()),
+                      ),
+                    ],
                   ),
                 ),
-                
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: _buildAppointmentTable(appointments),
-                    ),
+
+                // Centered Action Buttons
+                Center(
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      _buildActionButton(
+                        'Manage Services',
+                        Icons.build,
+                        () => Navigator.pushNamed(context, '/manage_services'),
+                      ),
+                      _buildActionButton(
+                        'View Appointments',
+                        Icons.visibility,
+                        () => Navigator.pushNamed(context, '/company_appointments'),
+                      ),
+                     
+                    ],
                   ),
                 ),
+
+                if (_showAppointments) ...[
+                  // Search Bar with Glass Effect
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search by Name or ID',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
+                      ),
+                    ),
+                  ),
+                  
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: _buildAppointmentTable(appointments),
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+Widget _buildGlassStatsCard(String title, String value) {
+  return Container(
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.9),
+      borderRadius: BorderRadius.circular(8),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.white.withOpacity(0.1),
+          blurRadius: 4,
+        ),
+      ],
+    ),
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+    child: Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF026DFE),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[800],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildActionButton(String label, IconData icon, VoidCallback onPressed, {bool isSecondary = false}) {
+  return ElevatedButton.icon(
+    icon: Icon(icon),
+    label: Text(label),
+    onPressed: onPressed,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: isSecondary ? Colors.white : const Color(0xFFFE5602),
+      foregroundColor: isSecondary ? Colors.black87 : Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+    ),
+  );
+}
 }

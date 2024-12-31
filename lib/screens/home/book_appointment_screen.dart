@@ -70,6 +70,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'service_status': 'Booked',
         'payment_status': 'Not Paid',
         'user_id': user.uid,
+        
         'created_at': FieldValue.serverTimestamp(),
       };
 

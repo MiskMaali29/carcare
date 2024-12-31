@@ -131,55 +131,55 @@ class ViewAppointmentsScreen extends StatelessWidget {
                               Text('Card Number: ${data['card_number'] ?? 'Not provided'}'),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                           const SizedBox(height: 8),
                           Row(
-                            children: [
-                              const Icon(Icons.car_repair, size: 20),
-                              const SizedBox(width: 8),
-                              Text('Service ID: ${data['service_id'] ?? 'Not assigned'}'),
+                           children: [
+                            const Icon(Icons.car_repair, size: 20),
+                             const SizedBox(width: 8),
+                             Text('Service ID: ${data['service_id'] ?? 'Not assigned'}'),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.directions_car_outlined, size: 20),
-                              const SizedBox(width: 8),
+                           const SizedBox(height: 8),
+                            Row(
+                           children: [
+                            const Icon(Icons.directions_car_outlined, size: 20),
+                            const SizedBox(width: 8),
                               Text('Car Type: ${data['car_type'] ?? 'Not provided'}'),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          // Status Chips
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Chip(
-                                label: Text(
-                                  'Payment: ${data['payment_status'] ?? 'Not Paid'}',
-                                  style: TextStyle(
-                                    color: (data['payment_status'] == 'Paid') 
-                                        ? Colors.green 
-                                        : Colors.red,
-                                  ),
-                                ),
-                                backgroundColor: (data['payment_status'] == 'Paid')
-                                    ? Colors.green.withOpacity(0.1)
-                                    : Colors.red.withOpacity(0.1),
-                              ),
-                              Chip(
-                                label: Text(
-                                  'Status: ${data['service_status'] ?? 'Booked'}',
-                                  style: TextStyle(
-                                    color: _getStatusColor(data['service_status']),
-                                  ),
-                                ),
-                                backgroundColor: _getStatusColor(data['service_status'])
-                                    .withOpacity(0.1),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          // Action Buttons
-                          if (data['service_status'] == 'Booked') // Only show if appointment is not in progress
+                          ],
+                            ),
+                           const SizedBox(height: 16),
+                            // Status Chips
+                        //    Row(
+                        //    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                         ////   children: [
+                         //     Chip(
+                         //     label: Text(
+                        //        'Payment: ${data['payment_status'] ?? 'Not Paid'}',
+                        //        style: TextStyle(
+                        //        color: (data['payment_status'] == 'Paid') 
+                        //          ? Colors.green 
+                        //          : Colors.red,
+                         //       ),
+                        //      ),
+                         //     backgroundColor: (data['payment_status'] == 'Paid')
+                      //          ? Colors.green.withOpacity(0.1)
+                       //         : Colors.red.withOpacity(0.1),
+                       //       ),
+                     //         Chip(
+                       //       label: Text(
+                      //          'Status: ${data['service_status'] ?? 'Booked'}',
+                       //         style: TextStyle(
+                        //        color: _getStatusColor(data['service_status']),
+                        //        ),
+                       //       ),
+                       //       backgroundColor: _getStatusColor(data['service_status'])
+                       //         .withOpacity(0.1),
+                       //       ),
+                       //     ],
+                       //     ),
+                      //      const SizedBox(height: 16),
+                            // Action Buttons
+                            if (data['service_status'] == 'Booked') // Only show if appointment is not in progress
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
@@ -220,6 +220,22 @@ class ViewAppointmentsScreen extends StatelessWidget {
                                 ),
                               ],
                             ),
+                            Row(
+  children: [
+    const Icon(Icons.check_circle_outline, size: 20),
+    const SizedBox(width: 8),
+    Text('Approval Status: ${data['approval_status'] ?? 'Pending'}'),
+  ],
+),
+if (data['approval_status'] == 'rejected') 
+  Row(
+    children: [
+      const Icon(Icons.error_outline, size: 20),
+      const SizedBox(width: 8),
+      Text('Rejection Reason: ${data['rejection_reason'] ?? 'Not provided'}'),
+    ],
+  ),
+
                         ],
                       ),
                     ),
@@ -233,16 +249,16 @@ class ViewAppointmentsScreen extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String? status) {
-    switch (status) {
-      case 'Completed':
-        return Colors.green;
-      case 'In Progress':
-        return Colors.orange;
-      case 'Booked':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
+ // Color _getStatusColor(String? status) {
+ //   switch (status) {
+  //    case 'Completed':
+ //       return Colors.green;
+  //    case 'In Progress':
+  //      return Colors.orange;
+  //    case 'Booked':
+ //       return Colors.blue;
+  //    default:
+   //     return Colors.grey;
+//    }
+ // }
 }

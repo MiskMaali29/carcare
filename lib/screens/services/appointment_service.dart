@@ -23,7 +23,8 @@ class AppointmentService {
         'created_at': FieldValue.serverTimestamp(),
         'payment_status': 'Not Paid',
         'service_status': 'Booked',
-        // Ensure these fields exist with default values if not provided
+        'approval_status': 'pending', // Default approval status
+        'rejection_reason': null, // Default rejection reason
         'phone_number': appointmentData['phone_number'] ?? '',
         'service_id': appointmentData['service_id'],
         'chassis_number': appointmentData['chassis_number'] ?? '',
@@ -98,14 +99,42 @@ class AppointmentService {
         throw Exception('Appointment not found');
       }
 
-      final appointmentData = doc.data() as Map<String, dynamic>;
-      if (appointmentData['user_id'] != user.uid) {
-        throw Exception('Unauthorized to update this appointment');
-      }
-
       await _appointmentCollection.doc(id).update(updatedData);
     } catch (e) {
       throw Exception('Failed to update appointment: $e');
+    }
+  }
+
+  // Create a new appointment with enhanced data
+  Future<void> createAppointment(Map<String, dynamic> appointmentData) async {
+    try {
+      // Fetch service details from the services collection
+      final serviceDoc = await FirebaseFirestore.instance
+          .collection('services')
+          .doc(appointmentData['service_id'])
+          .get();
+
+      if (!serviceDoc.exists) {
+        throw Exception('Service not found');
+      }
+
+      final serviceData = serviceDoc.data()!;
+
+      // Add additional details to appointment data
+      final enhancedAppointmentData = {
+        ...appointmentData,
+        'approval_status': 'pending',
+        'rejection_reason': null,
+        'estimated_duration': serviceData['duration'] ?? 30, // Default duration
+        'service_name': serviceData['name'], // Service name from services
+        'created_at': FieldValue.serverTimestamp(),
+        'service_status': 'Booked',
+        'payment_status': 'Not Paid'
+      };
+
+      await _appointmentCollection.add(enhancedAppointmentData);
+    } catch (e) {
+      throw Exception('Failed to create appointment: $e');
     }
   }
 
@@ -121,11 +150,6 @@ class AppointmentService {
       final doc = await _appointmentCollection.doc(id).get();
       if (!doc.exists) {
         throw Exception('Appointment not found');
-      }
-
-      final appointmentData = doc.data() as Map<String, dynamic>;
-      if (appointmentData['user_id'] != user.uid) {
-        throw Exception('Unauthorized to delete this appointment');
       }
 
       await _appointmentCollection.doc(id).delete();

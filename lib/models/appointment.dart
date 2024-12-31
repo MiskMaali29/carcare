@@ -1,4 +1,3 @@
-// lib/models/appointment.dart
 class Appointment {
   final String id;
   final String name;
@@ -10,6 +9,8 @@ class Appointment {
   final String appointmentTime;
   final String paymentStatus;
   final String serviceStatus;
+  final String approvalStatus;
+  final String? rejectionReason; // يمكن أن يكون null إذا لم يتم رفض الحجز
   final String userId;
 
   Appointment({
@@ -23,6 +24,8 @@ class Appointment {
     required this.appointmentTime,
     required this.paymentStatus,
     required this.serviceStatus,
+    required this.approvalStatus,
+    this.rejectionReason,
     required this.userId,
   });
 
@@ -39,6 +42,8 @@ class Appointment {
       appointmentTime: data['appointment_time'] ?? '',
       paymentStatus: data['payment_status'] ?? 'Not Paid',
       serviceStatus: data['service_status'] ?? 'Booked',
+      approvalStatus: data['approval_status'] ?? 'pending',
+      rejectionReason: data['rejection_reason'], // قد تكون null
       userId: data['user_id'] ?? '',
     );
   }
@@ -55,6 +60,8 @@ class Appointment {
       'appointment_time': appointmentTime,
       'payment_status': paymentStatus,
       'service_status': serviceStatus,
+      'approval_status': approvalStatus,
+      'rejection_reason': rejectionReason,
       'user_id': userId,
     };
   }
