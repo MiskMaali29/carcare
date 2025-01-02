@@ -94,7 +94,7 @@ class _ManageServicesScreenState extends State<ManageServicesScreen> {
           description: _descriptionController.text,
           price: double.parse(_priceController.text),
           duration: int.parse(_durationController.text),
-          companyId: currentUser.uid,
+         // companyId: currentUser.uid,
         );
 
         await _serviceService.addService(service);

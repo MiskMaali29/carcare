@@ -6,7 +6,7 @@ class Service {
   final String description;
   final double price;
   final int duration; // بالدقائق
-  final String companyId;
+ // final String companyId;
 
   Service({
     required this.id,
@@ -14,7 +14,7 @@ class Service {
     required this.description,
     required this.price,
     required this.duration,
-    required this.companyId,
+    //required this.companyId,
   });
 
   factory Service.fromFirestore(Map<String, dynamic> data, String id) {
@@ -24,7 +24,7 @@ class Service {
       description: data['description'] ?? '',
       price: (data['price'] ?? 0).toDouble(),
       duration: data['duration'] ?? 30, // القيمة الافتراضية 30 دقيقة
-      companyId: data['company_id'] ?? '',
+    //  companyId: data['company_id'] ?? '',
     );
   }
 
@@ -34,7 +34,7 @@ class Service {
       'description': description,
       'price': price,
       'duration': duration,
-      'company_id': companyId,
+    //  'company_id': companyId,
     };
   }
 }

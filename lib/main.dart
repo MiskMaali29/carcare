@@ -2,12 +2,15 @@
 
 import 'package:carcare/screens/auth/company_login_screen.dart';
 import 'package:carcare/screens/auth/company_signup_screen.dart';
+import 'package:carcare/screens/company/CompanyServiceHistoryScreen.dart';
 import 'package:carcare/screens/company/company_view_appointments_screen.dart';
+import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
+import 'package:carcare/screens/home/setting_screen.dart';
 import 'package:carcare/screens/home/view_appointments_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';  // Add this import
+import 'package:firebase_auth/firebase_auth.dart';  
 import 'firebase_options.dart';
 import 'screens/company/company_dashboard_screen.dart';
 import 'screens/company/manage_services_screen.dart';
@@ -96,6 +99,13 @@ class MyApp extends StatelessWidget {
         '/company_appointments': (context) => const CompanyViewAppointmentsScreen(),
         '/user_appointments': (context) =>  ViewAppointmentsScreen(),
         '/manage_services': (context) => const ManageServicesScreen(),
+        '/company_history': (context) => const CompanyHistoryScreen(),
+        '/about_us': (context) => const AboutUsScreen(),
+        '/customer_history': (context) => CustomerServiceHistoryScreen(
+        userId: FirebaseAuth.instance.currentUser!.uid,
+      ),
+
+ 
       },
       onGenerateRoute: (settings) {
         // Handle routes that need parameters

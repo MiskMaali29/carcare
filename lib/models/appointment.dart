@@ -8,7 +8,9 @@ class Appointment {
   final String appointmentDate;
   final String appointmentTime;
   final String paymentStatus;
+  final String amountPaid;
   final String serviceStatus;
+  final String serviceName;
   final String approvalStatus;
   final String? rejectionReason; // يمكن أن يكون null إذا لم يتم رفض الحجز
   final String userId;
@@ -23,7 +25,9 @@ class Appointment {
     required this.appointmentDate,
     required this.appointmentTime,
     required this.paymentStatus,
+    required this.amountPaid,
     required this.serviceStatus,
+    required this.serviceName,
     required this.approvalStatus,
     this.rejectionReason,
     required this.userId,
@@ -41,7 +45,9 @@ class Appointment {
       appointmentDate: data['appointment_date'] ?? '',
       appointmentTime: data['appointment_time'] ?? '',
       paymentStatus: data['payment_status'] ?? 'Not Paid',
+      amountPaid: data['amount_paid'] ?? '',
       serviceStatus: data['service_status'] ?? 'Booked',
+      serviceName: data['service_name'] ?? '',
       approvalStatus: data['approval_status'] ?? 'pending',
       rejectionReason: data['rejection_reason'], // قد تكون null
       userId: data['user_id'] ?? '',
@@ -61,6 +67,8 @@ class Appointment {
       'payment_status': paymentStatus,
       'service_status': serviceStatus,
       'approval_status': approvalStatus,
+      'service_name': serviceName,
+      'amount_paid': amountPaid,
       'rejection_reason': rejectionReason,
       'user_id': userId,
     };

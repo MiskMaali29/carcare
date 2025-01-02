@@ -3,7 +3,6 @@
 import 'package:carcare/screens/services/appointment_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:intl/intl.dart';
 
 class ViewAppointmentsScreen extends StatelessWidget {
@@ -44,7 +43,6 @@ class ViewAppointmentsScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF026DFE),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Use the AppointmentService stream
         stream: _appointmentService.getAppointmentsStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -108,134 +106,39 @@ class ViewAppointmentsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.person_outline, size: 20),
-                              const SizedBox(width: 8),
-                              Text('Name: ${data['name'] ?? 'Not provided'}'),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.phone_outlined, size: 20),
-                              const SizedBox(width: 8),
-                              Text('Phone: ${data['phone_number'] ?? 'Not provided'}'),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.credit_card_outlined, size: 20),
-                              const SizedBox(width: 8),
-                              Text('Card Number: ${data['card_number'] ?? 'Not provided'}'),
-                            ],
-                          ),
-                           const SizedBox(height: 8),
-                          Row(
-                           children: [
-                            const Icon(Icons.car_repair, size: 20),
-                             const SizedBox(width: 8),
-                             Text('Service ID: ${data['service_id'] ?? 'Not assigned'}'),
-                            ],
-                          ),
-                           const SizedBox(height: 8),
-                            Row(
-                           children: [
-                            const Icon(Icons.directions_car_outlined, size: 20),
-                            const SizedBox(width: 8),
-                              Text('Car Type: ${data['car_type'] ?? 'Not provided'}'),
-                          ],
-                            ),
-                           const SizedBox(height: 16),
-                            // Status Chips
-                        //    Row(
-                        //    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                         ////   children: [
-                         //     Chip(
-                         //     label: Text(
-                        //        'Payment: ${data['payment_status'] ?? 'Not Paid'}',
-                        //        style: TextStyle(
-                        //        color: (data['payment_status'] == 'Paid') 
-                        //          ? Colors.green 
-                        //          : Colors.red,
-                         //       ),
-                        //      ),
-                         //     backgroundColor: (data['payment_status'] == 'Paid')
-                      //          ? Colors.green.withOpacity(0.1)
-                       //         : Colors.red.withOpacity(0.1),
-                       //       ),
-                     //         Chip(
-                       //       label: Text(
-                      //          'Status: ${data['service_status'] ?? 'Booked'}',
-                       //         style: TextStyle(
-                        //        color: _getStatusColor(data['service_status']),
-                        //        ),
-                       //       ),
-                       //       backgroundColor: _getStatusColor(data['service_status'])
-                       //         .withOpacity(0.1),
-                       //       ),
-                       //     ],
-                       //     ),
-                      //      const SizedBox(height: 16),
-                            // Action Buttons
-                            if (data['service_status'] == 'Booked') // Only show if appointment is not in progress
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                          _buildRow(Icons.person_outline, 'Name', data['name']),
+                          _buildRow(Icons.phone_outlined, 'Phone', data['phone_number']),
+                          _buildRow(Icons.credit_card_outlined, 'Card Number', data['card_number']),
+                          _buildRow(Icons.car_repair, 'Service ID', data['service_id']),
+                          _buildRow(Icons.directions_car_outlined, 'Car Type', data['car_type']),
+                          const SizedBox(height: 16),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                TextButton(
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: const Text('Delete Appointment'),
-                                          content: const Text(
-                                            'Are you sure you want to delete this appointment?'
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () => Navigator.pop(context),
-                                              child: const Text('Cancel'),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                                _deleteAppointment(context, appointmentId);
-                                              },
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: Colors.red,
-                                              ),
-                                              child: const Text('Delete'),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                  child: const Text('Cancel Appointment'),
-                                ),
+                                _buildChip('Payment', data['payment_status'], Colors.green, Colors.red),
+                                _buildChip('Status', data['service_status'], Colors.blue, Colors.orange),
                               ],
                             ),
-                            Row(
-  children: [
-    const Icon(Icons.check_circle_outline, size: 20),
-    const SizedBox(width: 8),
-    Text('Approval Status: ${data['approval_status'] ?? 'Pending'}'),
-  ],
-),
-if (data['approval_status'] == 'rejected') 
-  Row(
-    children: [
-      const Icon(Icons.error_outline, size: 20),
-      const SizedBox(width: 8),
-      Text('Rejection Reason: ${data['rejection_reason'] ?? 'Not provided'}'),
-    ],
-  ),
-
+                          ),
+                          const SizedBox(height: 16),
+                          if (data['service_status'] == 'Booked')
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {
+                                  _showDeleteConfirmation(context, appointmentId);
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Cancel Appointment'),
+                              ),
+                            ),
+                          _buildRow(Icons.check_circle_outline, 'Approval Status', data['approval_status']),
+                          if (data['approval_status'] == 'rejected')
+                            _buildRow(Icons.error_outline, 'Rejection Reason', data['rejection_reason']),
                         ],
                       ),
                     ),
@@ -249,16 +152,71 @@ if (data['approval_status'] == 'rejected')
     );
   }
 
- // Color _getStatusColor(String? status) {
- //   switch (status) {
-  //    case 'Completed':
- //       return Colors.green;
-  //    case 'In Progress':
-  //      return Colors.orange;
-  //    case 'Booked':
- //       return Colors.blue;
-  //    default:
-   //     return Colors.grey;
-//    }
- // }
+  Widget _buildRow(IconData icon, String label, dynamic value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text('$label: ${value ?? 'Not provided'}'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(String label, String? value, Color successColor, Color failureColor) {
+    final bool isSuccess = value?.toLowerCase() == 'paid' || value?.toLowerCase() == 'completed';
+    return Chip(
+      label: Text(
+        '$label: ${value ?? 'Unknown'}',
+        style: TextStyle(color: isSuccess ? successColor : failureColor),
+      ),
+      backgroundColor: isSuccess ? successColor.withOpacity(0.1) : failureColor.withOpacity(0.1),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, String appointmentId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Appointment'),
+          content: const Text('Are you sure you want to delete this appointment?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteAppointment(context, appointmentId);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ignore: unused_element
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'in progress':
+        return Colors.orange;
+      case 'booked':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
 }

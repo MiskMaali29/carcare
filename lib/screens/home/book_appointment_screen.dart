@@ -1,4 +1,4 @@
-// lib/screens/home/book_appointment_screen.dart
+import 'package:carcare/models/service.dart';
 
 import 'package:carcare/screens/services/appointment_service.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +22,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   final _phoneNumberController = TextEditingController();
   final _appointmentService = AppointmentService();
   final _auth = FirebaseAuth.instance;
-  
+
   DateTime selectedDate = DateTime.now();
+  TimeOfDay? selectedTime;
   String? selectedVehicleType;
   String? selectedServiceId;
-  String? selectedTimeSlot;
   bool _isLoading = false;
 
   @override
@@ -39,13 +39,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   }
 
   Future<void> _bookAppointment() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (selectedTimeSlot == null) {
+    if (!_formKey.currentState!.validate() || selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an appointment time')),
+        const SnackBar(content: Text('Please fill all fields and select time.')),
       );
       return;
     }
@@ -54,9 +50,17 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     try {
       final user = _auth.currentUser;
-      if (user == null) {
-        throw Exception('No authenticated user found');
-      }
+      if (user == null) throw Exception('No authenticated user found');
+      if (selectedServiceId == null) throw Exception('Please select a service');
+
+      final serviceSnapshot = await FirebaseFirestore.instance
+          .collection('services')
+          .doc(selectedServiceId)
+          .get();
+
+      if (!serviceSnapshot.exists) throw Exception('Selected service not found');
+
+      final service = Service.fromFirestore(serviceSnapshot.data()!, serviceSnapshot.id);
 
       final appointmentData = {
         'name': _nameController.text.trim(),
@@ -64,40 +68,154 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'chassis_number': _chassisNumberController.text.trim(),
         'phone_number': _phoneNumberController.text.trim(),
         'car_type': selectedVehicleType,
-        'service_id': selectedServiceId,
+        'service_id': service.id,
+        'service_name': service.name,
+        'service_price': service.price,
+        'amount_paid': service.price,
         'appointment_date': Timestamp.fromDate(selectedDate),
-        'appointment_time': selectedTimeSlot,
+        'appointment_time': '${selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')}',
         'service_status': 'Booked',
         'payment_status': 'Not Paid',
         'user_id': user.uid,
-        
         'created_at': FieldValue.serverTimestamp(),
       };
 
       await _appointmentService.addAppointment(appointmentData);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Appointment booked successfully!')),
         );
-        
-        // Navigate to appointments view
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => ViewAppointmentsScreen()),
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to book appointment: $e')),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to book appointment: $e')),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 8, minute: 0),
+      helpText: 'Select Time (8:00 AM - 5:00 PM)',
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked.hour >= 8 && picked.hour <= 17) {
+      setState(() {
+        selectedTime = picked;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a time between 8:00 AM and 5:00 PM')),
+      );
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+    );
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+      });
+    }
+  }
+
+  
+
+  Widget buildBottomSection() {
+    return Column(
+      children: [
+        // First Row: Select Date and Select Time
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Column(
+              children: [
+              ElevatedButton(
+  onPressed: () => _selectDate(context),
+  style: ElevatedButton.styleFrom(
+    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
+    backgroundColor: const Color.fromARGB(255, 114, 173, 255),
+    foregroundColor: Colors.black,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  child: const Column(
+    mainAxisSize: MainAxisSize.min, // لجعل العناصر داخل الزر متناسقة
+    children: [
+      Icon(Icons.calendar_today, size: 30, color: Color(0xFF026DFE)),
+      SizedBox(height: 8),
+      Text('Choose Date' ,style: TextStyle(fontSize: 16))
+    ],
+  ),
+),
+
+              ],
+            ),
+            Column(
+              children: [
+                
+                ElevatedButton(
+                  onPressed: () => _selectTime(context),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
+                    backgroundColor: const Color.fromARGB(255, 114, 173, 255),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Column(
+    mainAxisSize: MainAxisSize.min, // لجعل العناصر داخل الزر متناسقة
+    children: [
+      Icon(Icons.access_time, size: 30, color: Color(0xFF026DFE)),
+      SizedBox(height: 8),
+      Text('Choose Time', style: TextStyle(fontSize: 16))
+    ],
+  ),
+),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        // Second Row: Book Appointment
+        Center(
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _bookAppointment,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 110),
+              backgroundColor: const  Color(0xFF026DFE),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: _isLoading
+                ? const CircularProgressIndicator(color: Color.fromARGB(255, 0, 105, 252))
+                : const Text('Book Appointment', style: TextStyle(fontSize: 16)),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -105,232 +223,111 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Appointment'),
-        backgroundColor: const Color(0xFF026DFE),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Name Field
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Phone Number Field
-                TextFormField(
-                  controller: _phoneNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Card Number Field
-                TextFormField(
-                  controller: _cardNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Card Number',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.credit_card),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your card number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-   StreamBuilder<QuerySnapshot>(
-  stream: FirebaseFirestore.instance.collection('services').snapshots(),
-  builder: (context, snapshot) {
-    // Handle errors in the stream
-    if (snapshot.hasError) {
-      return const Center(child: Text('Failed to load services.'));
-    }
-
-    // Show a loading indicator while fetching data
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    // Check if the collection is empty
-    final services = snapshot.data?.docs ?? [];
-    if (services.isEmpty) {
-      return const Center(child: Text('No services available.'));
-    }
-
-    // Map Firestore data to dropdown items
-    return DropdownButtonFormField<String>(
-      value: selectedServiceId,
-      decoration: const InputDecoration(
-        labelText: 'Service Type',
-        border: OutlineInputBorder(),
-        prefixIcon: Icon(Icons.build),
-      ),
-      items: services.map((service) {
-        final data = service.data() as Map<String, dynamic>;
-        return DropdownMenuItem(
-          value: service.id, // Use document ID as the value
-          child: Text(data['name'] ?? 'Unknown Service'),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() => selectedServiceId = value);
-      },
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select a service type';
-        }
-        return null;
-      },
-    );
-  },
-),
-
-                // Chassis Number Field
-                TextFormField(
-                  controller: _chassisNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'Chassis Number',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.numbers),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your chassis number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Vehicle Type Dropdown
-                DropdownButtonFormField<String>(
-                  value: selectedVehicleType,
-                  decoration: const InputDecoration(
-                    labelText: 'Vehicle Type',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.directions_car),
-                  ),
-                  items: ['Hybrid/Electric', 'Sedan', 'SUV', 'Truck']
-                      .map((type) => DropdownMenuItem(
-                            value: type,
-                            child: Text(type),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => selectedVehicleType = value);
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select a vehicle type';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Service Type Dropdown
-           // Date Selection Button
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(
-                    'Select Date: ${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
-                  ),
-                  onPressed: () async {
-                    final pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 30)),
-                    );
-                    if (pickedDate != null) {
-                      setState(() => selectedDate = pickedDate);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Time Selection Button
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.access_time),
-                  label: Text(
-                    selectedTimeSlot == null
-                        ? 'Select Appointment Time'
-                        : 'Time: $selectedTimeSlot',
-                  ),
-                  onPressed: () async {
-                    final TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-
-                    if (pickedTime != null) {
-                      setState(() => selectedTimeSlot = pickedTime.format(context));
-                    }
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Submit Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _bookAppointment,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFF026DFE),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Book Appointment',
-                          style: TextStyle(fontSize: 16),
+        backgroundColor: const Color.fromARGB(255, 114, 173, 255),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+         actions: [
+        IconButton(
+          icon: const Icon(Icons.event_note, size: 26), // أيقونة محسّنة
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ViewAppointmentsScreen()),
+            );
+          },
+        ),
+      ],
+    ),
+      
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color.fromARGB(255, 114, 173, 255), Color.fromARGB(255, 246, 246, 248)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                 // buildViewAppointmentsButton(),
+                
+                  const SizedBox(height: 20),
+                  _buildTextField(_nameController, 'Name', Icons.person),
+                  const SizedBox(height: 16),
+                  _buildTextField(_phoneNumberController, 'Phone Number', Icons.phone, TextInputType.phone),
+                  const SizedBox(height: 16),
+                  _buildTextField(_cardNumberController, 'Card Number', Icons.credit_card, TextInputType.number),
+                  const SizedBox(height: 16),
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance.collection('services').snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) return const Text('Error loading services');
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      }
+                      final services = snapshot.data?.docs ?? [];
+                      return DropdownButtonFormField<String>(
+                        value: selectedServiceId,
+                        decoration: InputDecoration(
+                          labelText: 'Service Type',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          prefixIcon: const Icon(Icons.build),
                         ),
-                ),
-
-                // View Appointments Button
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ViewAppointmentsScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text('View My Appointments'),
-                ),
-              ],
+                        items: services.map((service) {
+                          final data = service.data() as Map<String, dynamic>;
+                          return DropdownMenuItem(value: service.id, child: Text(data['name'] ?? 'Unnamed Service'));
+                        }).toList(),
+                        onChanged: (value) => setState(() => selectedServiceId = value),
+                        validator: (value) => value == null || value.isEmpty ? 'Please select a service' : null,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(_chassisNumberController, 'Chassis Number', Icons.numbers),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedVehicleType,
+                    decoration: InputDecoration(
+                      labelText: 'Vehicle Type',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.directions_car),
+                    ),
+                    items: ['Hybrid/Electric', 'Sedan', 'SUV', 'Truck']
+                        .map((type) => DropdownMenuItem(value: type, child: Text(type)))
+                        .toList(),
+                    onChanged: (value) => setState(() => selectedVehicleType = value),
+                    validator: (value) => value == null || value.isEmpty ? 'Please select a vehicle type' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  buildBottomSection(),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon,
+      [TextInputType keyboardType = TextInputType.text]) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        prefixIcon: Icon(icon),
+      ),
+      keyboardType: keyboardType,
+      validator: (value) => value == null || value.isEmpty ? 'Please enter $label' : null,
     );
   }
 }
