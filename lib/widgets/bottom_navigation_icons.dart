@@ -1,7 +1,7 @@
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
 import 'package:carcare/screens/home/book_appointment_screen.dart';
 import 'package:carcare/screens/home/home_screen.dart';
-import 'package:carcare/screens/home/setting_screen.dart';
+import 'package:carcare/screens/home/about_us.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -57,7 +57,7 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const AboutUsScreen(),
+          builder: (context) => const AboutUsScreen(username: '',),
         ),
       );
       break;

@@ -5,7 +5,10 @@ import 'package:carcare/screens/auth/company_signup_screen.dart';
 import 'package:carcare/screens/company/CompanyServiceHistoryScreen.dart';
 import 'package:carcare/screens/company/company_view_appointments_screen.dart';
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
-import 'package:carcare/screens/home/setting_screen.dart';
+import 'package:carcare/screens/home/list.dart';
+import 'package:carcare/screens/home/profile.dart';
+import 'package:carcare/screens/home/about_us.dart';
+import 'package:carcare/screens/home/settings_screen.dart';
 import 'package:carcare/screens/home/view_appointments_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -100,7 +103,15 @@ class MyApp extends StatelessWidget {
         '/user_appointments': (context) =>  ViewAppointmentsScreen(),
         '/manage_services': (context) => const ManageServicesScreen(),
         '/company_history': (context) => const CompanyHistoryScreen(),
-        '/about_us': (context) => const AboutUsScreen(),
+        '/about_us': (context) => const AboutUsScreen(username: '',),
+         '/settings': (context) => const SettingsScreen(),
+        '/profile': (context) => ProfileScreen(
+              username: FirebaseAuth.instance.currentUser?.email ?? 'User',
+            ),
+        
+        '/list': (context) => AppDrawer(
+              username: FirebaseAuth.instance.currentUser?.email ?? 'User',
+            ),
         '/customer_history': (context) => CustomerServiceHistoryScreen(
         userId: FirebaseAuth.instance.currentUser!.uid,
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AboutUsScreen extends StatelessWidget {
-  const AboutUsScreen({super.key});
+  const AboutUsScreen({super.key, required String username});
 
   @override
   Widget build(BuildContext context) {

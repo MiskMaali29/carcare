@@ -22,8 +22,8 @@ class Service {
       id: id,
       name: data['name'] ?? '',
       description: data['description'] ?? '',
-      price: (data['price'] ?? 0).toDouble(),
-      duration: data['duration'] ?? 30, // القيمة الافتراضية 30 دقيقة
+      price: (data['price'] is num) ? (data['price'] as num).toDouble() : double.tryParse(data['price']?.toString() ?? '0') ?? 0.0,
+      duration: (data['duration'] is num) ? (data['duration'] as num).toInt() : int.tryParse(data['duration']?.toString() ?? '30') ?? 30,
     //  companyId: data['company_id'] ?? '',
     );
   }

@@ -1,3 +1,4 @@
+import 'package:carcare/screens/home/list.dart';
 import 'package:carcare/widgets/bottom_navigation_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -195,7 +196,7 @@ class HomeScreen extends StatelessWidget {
                                   ),
                                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                 ),
-                                child: const Text(
+                               child: const Text(
                                   'Book Appointment',
                                   style: TextStyle(
                                     fontSize: 16,
@@ -216,32 +217,9 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFF026DFE)),
-              child: Text(
-                'Menu',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
-            ),
-            ListTile(
-              title: const Text('Book Appointment'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BookAppointmentScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+     drawer: AppDrawer(username: username),
       bottomNavigationBar: const BottomNavigationIcons(currentIndex: 0),
     );
   }
 }
+
