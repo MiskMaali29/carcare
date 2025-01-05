@@ -2,11 +2,43 @@
 import 'package:carcare/models/appointment.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class AppointmentService {
   final CollectionReference _appointmentCollection =
       FirebaseFirestore.instance.collection('appointments');
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+
+
+
+
+Future<void> requestNotificationPermission() async {
+    NotificationSettings settings = await _fcm.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    print('User granted permission: ${settings.authorizationStatus}');
+  }
+
+   Future<void> saveFcmToken() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        String? token = await _fcm.getToken();
+        if (token != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .update({'fcmToken': token});
+        }
+      }
+    } catch (e) {
+      print('Error saving FCM token: $e');
+    }
+  }
+
 
   // Add an appointment to Firestore
   Future<void> addAppointment(Map<String, dynamic> appointmentData) async {
@@ -31,11 +63,33 @@ class AppointmentService {
         'car_type': appointmentData['car_type'] ?? '',
       };
 
-      await _appointmentCollection.add(enhancedData);
+
+
+       DocumentReference appointmentRef = await _appointmentCollection.add(enhancedData);
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'user_id': user.uid,
+        'appointment_id': appointmentRef.id,
+        'title': 'New Appointment Booked',
+        'body': 'Your appointment has been scheduled',
+        'created_at': FieldValue.serverTimestamp(),
+        'read': false,
+        'appointment_date': appointmentData['appointment_date'],
+        'appointment_time': appointmentData['appointment_time'],
+      });
+
+      // Request notification permission if not already granted
+      await requestNotificationPermission();
+      
+      // Ensure FCM token is saved
+      await saveFcmToken();
+
     } catch (e) {
       throw Exception('Failed to add appointment: $e');
     }
   }
+
+  
 
   // Fetch appointments for current user
   Future<List<Appointment>> fetchAppointments() async {
@@ -85,6 +139,8 @@ class AppointmentService {
     }
   }
 
+
+
   // Update an existing appointment
   Future<void> updateAppointment(String id, Map<String, dynamic> updatedData) async {
     try {
@@ -108,6 +164,7 @@ class AppointmentService {
   // Create a new appointment with enhanced data
   Future<void> createAppointment(Map<String, dynamic> appointmentData) async {
     try {
+      
       // Fetch service details from the services collection
       final serviceDoc = await FirebaseFirestore.instance
           .collection('services')
@@ -119,6 +176,10 @@ class AppointmentService {
       }
 
       final serviceData = serviceDoc.data()!;
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No authenticated user found');
+      }
 
       // Add additional details to appointment data
       final enhancedAppointmentData = {
@@ -132,7 +193,25 @@ class AppointmentService {
         'payment_status': 'Not Paid'
       };
 
-      await _appointmentCollection.add(enhancedAppointmentData);
+    DocumentReference appointmentRef = await _appointmentCollection.add(enhancedAppointmentData);
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'user_id': user.uid,
+        'appointment_id': appointmentRef.id,
+        'title': 'New Appointment Created',
+        'body': 'Your ${serviceData['name']} appointment has been scheduled',
+        'created_at': FieldValue.serverTimestamp(),
+        'read': false,
+        'appointment_date': appointmentData['appointment_date'],
+        'appointment_time': appointmentData['appointment_time'],
+      });
+
+      // Request notification permission if not already granted
+      await requestNotificationPermission();
+      
+      // Ensure FCM token is saved
+      await saveFcmToken();
+
     } catch (e) {
       throw Exception('Failed to create appointment: $e');
     }

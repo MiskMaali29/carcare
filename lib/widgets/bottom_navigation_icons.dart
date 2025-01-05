@@ -1,9 +1,10 @@
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
 import 'package:carcare/screens/home/book_appointment_screen.dart';
 import 'package:carcare/screens/home/home_screen.dart';
-import 'package:carcare/screens/home/about_us.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../screens/notifications/notifications_screen.dart';
 
 class BottomNavigationIcons extends StatefulWidget {
   
@@ -54,12 +55,14 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
       break;
 
     case 3: // Settings Screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AboutUsScreen(username: '',),
-        ),
-      );
+ 
+    Navigator.push(
+      context,
+      MaterialPageRoute
+      (builder: (context) => const NotificationsScreen()
+    ),
+     );
+
       break;
   }
 }
@@ -85,9 +88,9 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
           label: 'My History',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings, size: 30),
+          icon: Icon(Icons.notifications, size: 30),
           //icon: Icon(Icons.settings),
-          label: 'Settings',
+          label: 'notifications',
         ),
       ],
       currentIndex: widget.currentIndex,

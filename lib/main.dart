@@ -25,6 +25,8 @@ import 'screens/auth/register_screen.dart';
 // Main screens
 import 'screens/home/welcome_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
+import 'screens/services/notification_service.dart';
 
 
 void main() async {
@@ -32,6 +34,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+final notificationService = NotificationService();
+  await notificationService.initialize();
+
   runApp(const MyApp());
 }
 
@@ -103,6 +109,7 @@ class MyApp extends StatelessWidget {
         '/user_appointments': (context) =>  ViewAppointmentsScreen(),
         '/manage_services': (context) => const ManageServicesScreen(),
         '/company_history': (context) => const CompanyHistoryScreen(),
+         '/Notificatiosns_Screen': (context) => const NotificationsScreen(),
         '/about_us': (context) => const AboutUsScreen(username: '',),
          '/settings': (context) => const SettingsScreen(),
         '/profile': (context) => ProfileScreen(
