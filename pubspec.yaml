@@ -34,8 +34,9 @@ flutter:
   
   assets:
     - assets/images/AppBar48.png
-    - assets/images/car_image.png
     - assets/images/background.png
+    - assets/images/brake.png
+    - assets/images/car_image.png
     - assets/images/hi.png
     - assets/images/test.png
     - assets/images/home_screenfix.png
@@ -43,6 +44,7 @@ flutter:
     - assets/images/logo.png
     - assets/images/logo192.png
     - assets/images/selectpic.png
+    - assets/images/services.png
     - assets/images/robot.png
     - assets/images/splash_screenlogo.png
     - assets/images/splash200.png

@@ -1,10 +1,10 @@
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
 import 'package:carcare/screens/home/book_appointment_screen.dart';
 import 'package:carcare/screens/home/home_screen.dart';
+import 'package:carcare/screens/services/services_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../screens/notifications/notifications_screen.dart';
 
 class BottomNavigationIcons extends StatefulWidget {
   
@@ -33,7 +33,7 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const BookAppointmentScreen(),
+          builder: (context) =>  BookAppointmentScreen(),
         ),
       );
       break;
@@ -59,7 +59,7 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
     Navigator.push(
       context,
       MaterialPageRoute
-      (builder: (context) => const NotificationsScreen()
+      (builder: (context) => const ServicesScreen()
     ),
      );
 
@@ -71,32 +71,31 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
   Widget build(BuildContext context) {
     
     return BottomNavigationBar(
-      items: const [
-        BottomNavigationBarItem(
+      items: [
+        const BottomNavigationBarItem(
           icon: Icon(Icons.home, size: 30),
           //icon: Icon(Icons.home),
           label: 'Home',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.calendar_today, size: 30),
           //icon: Icon(Icons.calendar_today),
           label: 'My Appointments',
         ),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(
           icon: Icon(Icons.history, size: 34),
          // icon: Icon(Icons.history),
           label: 'My History',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.notifications, size: 30),
-          //icon: Icon(Icons.settings),
-          label: 'notifications',
+          icon: Image.asset('assets/images/services.png', width: 32, height: 32),
+          label: 'services',
         ),
       ],
       currentIndex: widget.currentIndex,
-    selectedItemColor: const Color(0xFFFF6A20), // Color for the selected item
-    unselectedItemColor: const Color.fromARGB(255, 255, 141, 84), // Color for unselected items
-    backgroundColor: const Color.fromARGB(255, 2, 19, 41), // Background color of the BottomNavigationBar
+     selectedItemColor: const Color(0xFFFF6A20), // Color for the selected item
+     unselectedItemColor: const Color.fromARGB(255, 255, 141, 84), // Color for unselected items
+     backgroundColor: const Color.fromARGB(255, 2, 19, 41), // Background color of the BottomNavigationBar
     onTap: _onItemTapped,
     );
   }

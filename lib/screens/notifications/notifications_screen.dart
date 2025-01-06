@@ -19,6 +19,152 @@ class NotificationsScreen extends StatelessWidget {
         .snapshots();
   }
 
+  String _formatDate(Timestamp? timestamp) {
+    if (timestamp == null) return 'Date not available';
+    return DateFormat('MMM d, yyyy - h:mm a').format(timestamp.toDate());
+  }
+
+  Widget _buildNotificationContent(Map<String, dynamic> notification) {
+    final status = notification['status'];
+    final rejectionReason = notification['rejection_reason'];
+    final serviceName = notification['service_name'] ?? 'Service';
+    final created_at = notification['created_at'] as Timestamp?;
+
+    if (status == 'rejected') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.cancel, color: Colors.red[400], size: 16),
+              const SizedBox(width: 4),
+              Text(
+                'Appointment Rejected',
+                style: TextStyle(
+                  color: Colors.red[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Service: $serviceName',
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+          ),
+          if (rejectionReason != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Reason: $rejectionReason',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+          const SizedBox(height: 4),
+          Text(
+            _formatDate(created_at),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // For status updates
+    if (notification['type'] == 'status_update') {
+      final newStatus = notification['service_status'] ?? 'Updated';
+      Color statusColor;
+      switch (newStatus.toLowerCase()) {
+        case 'in progress':
+          statusColor = Colors.blue;
+          break;
+        case 'completed':
+          statusColor = Colors.green;
+          break;
+        default:
+          statusColor = Colors.orange;
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Appointment Status Updated',
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  newStatus,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _formatDate(created_at),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Default notification layout
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          notification['title'] ?? 'New Notification',
+          style: const TextStyle(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        if (notification['body'] != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            notification['body'],
+            style: const TextStyle(
+              fontSize: 13,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+        const SizedBox(height: 4),
+        Text(
+          _formatDate(created_at),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _markAsRead(String notificationId) async {
     await FirebaseFirestore.instance
         .collection('notifications')
@@ -91,38 +237,12 @@ class NotificationsScreen extends StatelessWidget {
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: const Color(0xFF026DFE).withOpacity(0.1),
-                      child: const Icon(Icons.notification_important, 
-                        color: Color(0xFF026DFE)),
+                      child: const Icon(
+                        Icons.notification_important,
+                        color: Color(0xFF026DFE),
+                      ),
                     ),
-                    title: Text(
-                      notification['service_name'] ?? 'Appointment Reminder',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(DateFormat('MMM d, yyyy - h:mm a')
-                            .format((notification['appointment_date'] as Timestamp).toDate())),
-                        if (!isRead)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8, 
-                              vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF026DFE).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Text(
-                              'New',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF026DFE),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                    title: _buildNotificationContent(notification),
                     onTap: () => _markAsRead(notificationId),
                   ),
                 ),

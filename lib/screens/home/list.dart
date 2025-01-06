@@ -5,6 +5,7 @@ import 'package:carcare/screens/home/settings_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'book_appointment_screen.dart';
+import 'welcome_screen.dart';
 
 class AppDrawer extends StatefulWidget {
   final String username;
@@ -148,16 +149,21 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
             ),
 
             // Logout Option at bottom
-            Divider(height: 1),
             _buildMenuItem(
-              icon: Icons.logout,
-              title: 'Logout',
-              color: AppColors.error,
-              onTap: () {
-                FirebaseAuth.instance.signOut();
-                Navigator.pop(context);
-              },
-            ),
+  icon: Icons.logout,
+  title: 'Logout',
+  color: AppColors.error,
+  onTap: () async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()), // Or your login screen
+        (route) => false, // This removes all previous routes
+      );
+    }
+  },
+),
           ],
         ),
       ),

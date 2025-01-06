@@ -5,10 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../widgets/notification_overlay.dart';
 import 'view_appointments_screen.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
-  const BookAppointmentScreen({Key? key}) : super(key: key);
+final String? initialServiceId;
+
+const BookAppointmentScreen({
+    Key? key, 
+    this.initialServiceId  // Add this
+  }) : super(key: key);
+
 
   @override
   _BookAppointmentScreenState createState() => _BookAppointmentScreenState();
@@ -28,6 +35,16 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   String? selectedVehicleType;
   String? selectedServiceId;
   bool _isLoading = false;
+
+   @override
+  void initState() {
+    super.initState();
+    if (widget.initialServiceId != null) {
+      setState(() {
+        selectedServiceId = widget.initialServiceId;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -81,7 +98,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       };
 
       await _appointmentService.addAppointment(appointmentData);
-
+      
+  if (mounted) {
+        NotificationOverlay.show(
+          context,
+          'Appointment Booked',
+          'Your appointment for ${service.name} has been scheduled successfully!',
+        );
+      }
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Appointment booked successfully!')),

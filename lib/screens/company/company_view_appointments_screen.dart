@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
+
 class CompanyViewAppointmentsScreen extends StatelessWidget {
   const CompanyViewAppointmentsScreen({Key? key}) : super(key: key);
 
@@ -194,6 +195,9 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 try {
+                   final data = doc.data() as Map<String, dynamic>;
+                   final userId = data['user_id'];
+
                   await FirebaseFirestore.instance
                       .collection('appointments')
                       .doc(doc.id)
@@ -203,7 +207,46 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
                     'service_status': serviceStatus,
                     'rejection_reason': approvalStatus == 'rejected' ? rejectionReason : null,
                     'updated_at': FieldValue.serverTimestamp(),
-                  });
+                  }); 
+
+// When company rejects an appointment
+ if (approvalStatus == 'rejected') {
+await FirebaseFirestore.instance.collection('notifications').add({
+  'user_id': userId,
+  'service_id': data['service_id'],
+  'status': 'rejected',
+  'rejection_reason': rejectionReason,
+  'created_at': FieldValue.serverTimestamp(),
+  'read': false,
+  'type': 'rejection'
+});
+  }
+
+
+// When company updates status
+
+if (serviceStatus != data['service_status']) {
+await FirebaseFirestore.instance.collection('notifications').add({
+  'user_id': userId,
+  'service_id': data['service_id'],
+  'type': 'status_update',
+  'service_status': serviceStatus,  // 'In Progress', 'Completed', etc.
+  'created_at': FieldValue.serverTimestamp(),
+  'read': false
+});
+  }
+
+// If service status changed, create status update notification
+      if (serviceStatus != data['service_status']) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'user_id': data['user_id'],  // Note: use data['user_id'] not userId
+          'service_id': data['service_id'],
+          'type': 'status_update',
+          'service_status': serviceStatus,
+          'created_at': FieldValue.serverTimestamp(),
+          'read': false
+        });
+      }
 
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Appointment updated successfully!')),
@@ -279,6 +322,7 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
                     data['service_status'] ?? 'Booked',
                     _getStatusColor(data['service_status'] ?? 'Booked', 'service'),
                   ),
+                 
                 ],
               ),
               if (data['approval_status'] == 'rejected')

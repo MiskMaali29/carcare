@@ -1,7 +1,8 @@
 import 'package:carcare/screens/home/list.dart';
+import 'package:carcare/screens/notifications/notifications_screen.dart';
 import 'package:carcare/widgets/bottom_navigation_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../widgets/notification_badge.dart';
 import 'book_appointment_screen.dart';
 
 
@@ -86,16 +87,28 @@ class HomeScreen extends StatelessWidget {
                     fontSize: 18,
                   ),
                 ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.logout, color: Color(0xFFFF6A20)),
-                    onPressed: () async {
-                      await FirebaseAuth.instance.signOut();
-                      Navigator.pushReplacementNamed(context, '/welcome');
-                    },
-                  ),
-                ],
+             actions: [
+    Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: NotificationBadge(
+        child: IconButton(
+          icon: const Icon(
+            Icons.notifications,
+            color: Color(0xFFFF6A20), // Match the menu icon color
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationsScreen(),
               ),
+            );
+          },
+        ),
+      ),
+    ),
+  ],
+),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -185,7 +198,7 @@ class HomeScreen extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                      const BookAppointmentScreen(),
+                                       BookAppointmentScreen(),
                                     ),
                                   );
                                 },
