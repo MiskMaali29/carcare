@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/service.dart';
 import '../home/book_appointment_screen.dart';
- // Update with your correct import path
 
 class ServicesScreen extends StatelessWidget {
   const ServicesScreen({Key? key}) : super(key: key);

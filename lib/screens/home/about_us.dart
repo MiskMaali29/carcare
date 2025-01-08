@@ -87,7 +87,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Image.asset(
-                          'assets/images/logo192 1.png',
+                          'assets/images/car_image.png',
                           height: 100,
                         ),
                       ),
@@ -103,7 +103,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
               opacity: _fadeAnimation,
               child: const Center(
                 child: Text(
-                  'Welcome to Motor CarCare',
+                  'Welcome to MotorCarCare',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -124,26 +124,30 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
                   color: Color(0xFF026DFE).withOpacity(0.1), // Slightly lighter background color
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: const [
+                  children: [
                     Text(
                       'Our Mission',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        fontFamily: 'Sen',
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFFF6A20),
                       ),
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'At Motor CarCare, we aim to revolutionize the car repair experience by providing a seamless, efficient, and user-friendly platform for car owners and workshop managers alike.',
+                      'At MotorCarCare,we aim to revolutionize the car repair experience by providing a seamless\n'
+                      'efficient,and user-friendly platform for car owners and workshop managers alike.',
                       style: TextStyle(
+                        fontFamily: 'Sen',
                         fontSize: 16,
-                        color: Color(0xFF757575),
+                        color:  Color(0xFF212121),
                         height: 1.5,
+                        fontWeight: FontWeight.w300, 
                       ),
-                      textAlign: TextAlign.justify,
+                     textAlign: TextAlign.start,
                     ),
                   ],
                 ),
@@ -160,30 +164,103 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
                   color:Color(0xFF026DFE).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
+                    const Text(
                       'Our Core Values',
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+                        fontFamily: 'Sen',
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFFF6A20),
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      '- Excellence: Delivering top-quality services.\n'
-                          '- Innovation: Adopting advanced technologies like Flutter and AI chatbots.\n'
-                          '- Reliability: Ensuring smooth operations with robust systems.\n'
-                          '- Accessibility: Offering web and mobile interfaces for convenience.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF757575),
-                        height: 1.5,
-                      ),
-                      textAlign: TextAlign.justify,
-                    ),
+                  RichText(
+  textAlign: TextAlign.start,
+  text: const TextSpan(
+    style: TextStyle(
+      fontSize: 14,
+      
+      color: Color(0xFF212121),
+      fontFamily: 'Sen',
+      fontWeight: FontWeight.w300,
+
+      height: 1.5,
+    ),
+    children: [
+      // TextSpan(
+      //   text: 'At Motor CarCare, we stand by our core values:\n',
+      //   style: TextStyle(
+      //     fontSize: 18,
+      //     fontFamily: 'Sen',
+      //     fontWeight: FontWeight.w500,
+      //     color: Color(0xFF026DFE),  // اللون الأزرق الرئيسي للتطبيق
+      //   ),
+      // ),
+      TextSpan(
+        text: 'Excellence',
+        style: TextStyle(
+          fontSize: 16,
+          fontFamily:'Sen',
+          fontWeight: FontWeight.w300,
+          color: Color(0xFF026DFE),
+        ),
+      ),
+      TextSpan(
+        text: ': Delivering superior service without compromise\n',
+      ),
+      TextSpan(
+        text: 'Trust',
+        style: TextStyle(
+          fontSize: 16,
+          fontFamily:'Sen', 
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF026DFE),
+        ),
+      ),
+      TextSpan(
+        text: ': Building lasting relationships through transparency\n',
+      ),
+      TextSpan(
+        text: 'Innovation',
+        style: TextStyle(
+          fontSize: 16,
+          fontFamily: 'Sen',
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF026DFE),
+        ),
+      ),
+      TextSpan(
+        text: ': Embracing modern solutions for better care\n',
+      ),
+      TextSpan(
+        text: 'Customer Focus',
+        style: TextStyle(
+          fontSize: 16,
+          fontFamily:'Sen',
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF026DFE),
+        ),
+      ),
+      TextSpan(
+        text: ': Making your satisfaction our priority\n',
+      ),
+      TextSpan(
+        text: 'Efficiency',
+        style: TextStyle(
+          fontSize: 16,
+          fontFamily:'Sen', 
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF026DFE),
+        ),
+      ),
+      TextSpan(
+        text: ': Respecting your time while ensuring quality',
+      ),
+    ],
+  ),
+)
                   ],
                 ),
               ),
