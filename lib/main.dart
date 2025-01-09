@@ -2,6 +2,7 @@
 
 import 'package:carcare/screens/auth/company_login_screen.dart';
 import 'package:carcare/screens/auth/company_signup_screen.dart';
+import 'package:carcare/screens/auth/forget_password_screen.dart';
 import 'package:carcare/screens/company/CompanyServiceHistoryScreen.dart';
 import 'package:carcare/screens/company/company_view_appointments_screen.dart';
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
@@ -35,11 +36,13 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+
 final notificationService = NotificationService();
   await notificationService.initialize();
 
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -105,6 +108,7 @@ class MyApp extends StatelessWidget {
         '/login_company': (context) => const CompanyLoginScreen(),
         '/signup': (context) => const RegisterScreen(),
         '/company_signup': (context) => const CompanyRegisterScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/company_appointments': (context) => const CompanyViewAppointmentsScreen(),
         '/user_appointments': (context) =>  ViewAppointmentsScreen(),
         '/manage_services': (context) => const ManageServicesScreen(),

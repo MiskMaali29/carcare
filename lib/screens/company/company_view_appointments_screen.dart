@@ -77,6 +77,29 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
     String serviceStatus = data['service_status'] ?? 'Booked';
     String rejectionReason = data['rejection_reason'] ?? '';
 
+      // Function to show delete confirmation dialog
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Rejection'),
+          content: const Text('Are you sure you want to reject and delete this appointment?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirm', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+  }
+
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -198,6 +221,36 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
                    final data = doc.data() as Map<String, dynamic>;
                    final userId = data['user_id'];
 
+                   // If status is changed to rejected, show confirmation dialog
+                if (approvalStatus == 'rejected') {
+                  bool confirmDelete = await _showDeleteConfirmation();
+                  if (!confirmDelete) return;
+
+                  // Send notification before deleting
+                  await FirebaseFirestore.instance.collection('notifications').add({
+                    'user_id': userId,
+                    'service_id': data['service_id'],
+                    'status': 'rejected',
+                    'rejection_reason': rejectionReason,
+                    'created_at': FieldValue.serverTimestamp(),
+                    'read': false,
+                    'type': 'rejection'
+                  });
+
+                  // Delete the appointment
+                  await FirebaseFirestore.instance
+                      .collection('appointments')
+                      .doc(doc.id)
+                      .delete();
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Appointment rejected and deleted successfully!')),
+                    );
+                    Navigator.pop(context);
+                  }
+                } else {
+
                   await FirebaseFirestore.instance
                       .collection('appointments')
                       .doc(doc.id)
@@ -209,63 +262,98 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
                     'updated_at': FieldValue.serverTimestamp(),
                   }); 
 
-// When company rejects an appointment
- if (approvalStatus == 'rejected') {
-await FirebaseFirestore.instance.collection('notifications').add({
-  'user_id': userId,
-  'service_id': data['service_id'],
-  'status': 'rejected',
-  'rejection_reason': rejectionReason,
-  'created_at': FieldValue.serverTimestamp(),
-  'read': false,
-  'type': 'rejection'
-});
-  }
+// Send status update notification
+                  if (serviceStatus != data['service_status']) {
+                    await FirebaseFirestore.instance.collection('notifications').add({
+                      'user_id': userId,
+                      'service_id': data['service_id'],
+                      'type': 'status_update',
+                      'service_status': serviceStatus,
+                      'created_at': FieldValue.serverTimestamp(),
+                      'read': false
+                    });
+                  }
 
-
-// When company updates status
-
-if (serviceStatus != data['service_status']) {
-await FirebaseFirestore.instance.collection('notifications').add({
-  'user_id': userId,
-  'service_id': data['service_id'],
-  'type': 'status_update',
-  'service_status': serviceStatus,  // 'In Progress', 'Completed', etc.
-  'created_at': FieldValue.serverTimestamp(),
-  'read': false
-});
-  }
-
-// If service status changed, create status update notification
-      if (serviceStatus != data['service_status']) {
-        await FirebaseFirestore.instance.collection('notifications').add({
-          'user_id': data['user_id'],  // Note: use data['user_id'] not userId
-          'service_id': data['service_id'],
-          'type': 'status_update',
-          'service_status': serviceStatus,
-          'created_at': FieldValue.serverTimestamp(),
-          'read': false
-        });
-      }
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Appointment updated successfully!')),
-                  );
-                  Navigator.pop(context);
-                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Appointment updated successfully!')),
+                    );
+                    Navigator.pop(context);
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to update appointment: $e')),
                   );
                 }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF026DFE)),
-              child: const Text('Save Changes'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF026DFE)),
+            child: const Text('Save Changes'),
+          ),
+        ],
+      );
+    },
+  );
+}
+// // When company rejects an appointment
+//  if (approvalStatus == 'rejected') {
+// await FirebaseFirestore.instance.collection('notifications').add({
+//   'user_id': userId,
+//   'service_id': data['service_id'],
+//   'status': 'rejected',
+//   'rejection_reason': rejectionReason,
+//   'created_at': FieldValue.serverTimestamp(),
+//   'read': false,
+//   'type': 'rejection'
+// });
+//   }
+
+
+// When company updates status
+
+// if (serviceStatus != data['service_status']) {
+// await FirebaseFirestore.instance.collection('notifications').add({
+//   'user_id': userId,
+//   'service_id': data['service_id'],
+//   'type': 'status_update',
+//   'service_status': serviceStatus,  // 'In Progress', 'Completed', etc.
+//   'created_at': FieldValue.serverTimestamp(),
+//   'read': false
+// });
+//   }
+
+// // If service status changed, create status update notification
+//       if (serviceStatus != data['service_status']) {
+//         await FirebaseFirestore.instance.collection('notifications').add({
+//           'user_id': data['user_id'],  // Note: use data['user_id'] not userId
+//           'service_id': data['service_id'],
+//           'type': 'status_update',
+//           'service_status': serviceStatus,
+//           'created_at': FieldValue.serverTimestamp(),
+//           'read': false
+//         });
+//       }
+
+//                   ScaffoldMessenger.of(context).showSnackBar(
+//                     const SnackBar(content: Text('Appointment updated successfully!')),
+//                   );
+//                   Navigator.pop(context);
+//                 } catch (e) {
+//                   ScaffoldMessenger.of(context).showSnackBar(
+//                     SnackBar(content: Text('Failed to update appointment: $e')),
+//                   );
+//                 }
+//               },
+//               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF026DFE)),
+//               child: const Text('Save Changes'),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
 
   Widget _buildAppointmentCard(BuildContext context, DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;

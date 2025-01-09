@@ -2,6 +2,8 @@
 import 'package:carcare/screens/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
+import 'forget_password_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -145,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/forget_password');
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()));
                         },
                         child: const Text('Forgot Password?'),
                       ),
