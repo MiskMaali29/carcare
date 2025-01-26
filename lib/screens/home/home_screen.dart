@@ -198,7 +198,7 @@ class HomeScreen extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                       BookAppointmentScreen(),
+                                       const BookAppointmentScreen(),
                                     ),
                                   );
                                 },

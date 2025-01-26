@@ -32,12 +32,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-          print('Attempting to send reset email to: ${_emailController.text.trim()}');
-
       await FirebaseAuth.instance.sendPasswordResetEmail(
         email: _emailController.text.trim(),
       );
-          print('Reset email sent successfully');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -47,13 +44,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
-        // Navigate back after successful reset email sent
-        // Navigator.of(context).pop();
+        Navigator.of(context).pop();
       }
     } on FirebaseAuthException catch (e) {
-          print('FirebaseAuthException: ${e.code} - ${e.message}');
-
       setState(() {
         switch (e.code) {
           case 'user-not-found':
@@ -66,15 +59,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             _errorMessage = 'An error occurred. Please try again later.';
         }
       });
-      
-      
-        } catch (e) {
-    print('General error: $e');
-    setState(() => _errorMessage = e.toString());
-  } finally {
-    setState(() => _isLoading = false);
+    } catch (e) {
+      setState(() => _errorMessage = e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,38 +128,40 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _resetPassword,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Text(
-                              'Send Reset Link',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                 // Using InkWell with Container for custom button
+SizedBox(
+  width: double.infinity,
+  height: 50,
+  child: Material(
+    borderRadius: BorderRadius.circular(12),
+    color: _isLoading ? Theme.of(context).primaryColor.withOpacity(0.5) : Theme.of(context).primaryColor,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: _isLoading ? null : _resetPassword,
+      child: Container(
+        alignment: Alignment.center,
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Text(
+                'Send Reset Link',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    ),
+  ),
+),
+                    const SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

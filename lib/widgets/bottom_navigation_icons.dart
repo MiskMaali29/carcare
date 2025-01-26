@@ -33,7 +33,7 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>  BookAppointmentScreen(),
+          builder: (context) =>  const BookAppointmentScreen(),
         ),
       );
       break;

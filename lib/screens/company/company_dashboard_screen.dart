@@ -192,6 +192,11 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 16), 
+                  ElevatedButton(
+  onPressed: () => Navigator.pushNamed(context, '/view_feedback'),
+  child: const Text('View Feedback'),
+),
                 ],
               ),
             ),

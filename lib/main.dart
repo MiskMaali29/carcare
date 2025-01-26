@@ -5,6 +5,8 @@ import 'package:carcare/screens/auth/company_signup_screen.dart';
 import 'package:carcare/screens/auth/forget_password_screen.dart';
 import 'package:carcare/screens/company/CompanyServiceHistoryScreen.dart';
 import 'package:carcare/screens/company/company_view_appointments_screen.dart';
+import 'package:carcare/screens/feedback/feedback_screen.dart';
+import 'package:carcare/screens/feedback/view_feedback_screen.dart';
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
 import 'package:carcare/screens/home/list.dart';
 import 'package:carcare/screens/home/profile.dart';
@@ -116,6 +118,7 @@ class MyApp extends StatelessWidget {
          '/Notificatiosns_Screen': (context) => const NotificationsScreen(),
         '/about_us': (context) => const AboutUsScreen(username: '',),
          '/settings': (context) => const SettingsScreen(),
+         
         '/profile': (context) => ProfileScreen(
               username: FirebaseAuth.instance.currentUser?.email ?? 'User',
             ),
@@ -123,6 +126,12 @@ class MyApp extends StatelessWidget {
         '/list': (context) => AppDrawer(
               username: FirebaseAuth.instance.currentUser?.email ?? 'User',
             ),
+            '/add_feedback': (context) => const AddFeedbackScreen(
+  appointmentId: '',  // Pass this from appointment details
+  serviceId: '',      // Pass this from appointment details
+  serviceName: '',    // Pass this from appointment details
+),
+'/view_feedback': (context) => const ViewFeedbackScreen(),
         '/customer_history': (context) => CustomerServiceHistoryScreen(
         userId: FirebaseAuth.instance.currentUser!.uid,
       ),

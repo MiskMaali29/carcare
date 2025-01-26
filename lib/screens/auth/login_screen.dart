@@ -24,34 +24,33 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
+Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
         final emailOrUsername = _emailOrUsernameController.text.trim().toLowerCase();
         final password = _passwordController.text;
 
-        // Authenticate using AuthService
-        await AuthService().loginUser(
+        // Get username from login
+        String username = await AuthService().loginUser(
           emailOrUsername: emailOrUsername,
           password: password,
         );
 
-        Navigator.pushReplacementNamed(context, '/home', arguments: emailOrUsername);
+        Navigator.pushReplacementNamed(
+          context,
+          '/home',
+          arguments: username,  // Pass username instead of email
+        );
       } catch (e) {
-        String errorMessage = 'An error occurred';
-        if (e.toString().contains('user-not-found')) {
-          errorMessage = 'No account found with this email or username.';
-        } else if (e.toString().contains('wrong-password')) {
-          errorMessage = 'Incorrect password. Please try again.';
-        }
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
       } finally {
         setState(() => _isLoading = false);
       }
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

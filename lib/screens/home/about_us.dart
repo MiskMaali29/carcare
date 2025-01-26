@@ -54,9 +54,9 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFBDDBFF),
+      backgroundColor: const Color(0xFFBDDBFF),
       appBar: AppBar(
-        backgroundColor: Color(0xFF026DFE),
+        backgroundColor: const Color(0xFF026DFE),
         elevation: 0,
         title: const Text(
           "About Us",
@@ -82,7 +82,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Color(0xFFFE5602), width: 2),
+                        border: Border.all(color: const Color(0xFFFE5602), width: 2),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -121,7 +121,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
               child: Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Color(0xFF026DFE).withOpacity(0.1), // Slightly lighter background color
+                  color: const Color(0xFF026DFE).withOpacity(0.1), // Slightly lighter background color
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Column(
@@ -161,7 +161,7 @@ class _AboutUsScreenState extends State<AboutUsScreen> with SingleTickerProvider
               child: Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color:Color(0xFF026DFE).withOpacity(0.1),
+                  color:const Color(0xFF026DFE).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(

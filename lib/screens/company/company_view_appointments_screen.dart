@@ -78,7 +78,7 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
     String rejectionReason = data['rejection_reason'] ?? '';
 
       // Function to show delete confirmation dialog
-  Future<bool> _showDeleteConfirmation() async {
+  Future<bool> showDeleteConfirmation() async {
     return await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -223,7 +223,7 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
 
                    // If status is changed to rejected, show confirmation dialog
                 if (approvalStatus == 'rejected') {
-                  bool confirmDelete = await _showDeleteConfirmation();
+                  bool confirmDelete = await showDeleteConfirmation();
                   if (!confirmDelete) return;
 
                   // Send notification before deleting

@@ -1,3 +1,4 @@
+//import 'package:carcare/screens/feedback/feedback_screen.dart';
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
 import 'package:carcare/screens/home/about_us.dart';
 import 'profile.dart';  // Add this import at the top of list.dart
@@ -136,6 +137,21 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
                       ),
                     ),
                   ),
+        //         _buildMenuItem(
+        //           icon: Icons.rate_review,
+        //           title: 'Leave Feedback',
+        //           onTap: () {
+        //             Navigator.push(
+        //               context,
+        //               MaterialPageRoute(
+        //   builder: (context) => FeedbackScreen(
+        //     appointmentId: doc.id,
+        //     appointmentData: data, // نمرر كل بيانات الموعد
+        //   ),
+        // ),
+        //             );
+        //           },
+        //         ),
                   _buildMenuItem(
                     icon: Icons.settings,
                     title: 'Settings',

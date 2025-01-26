@@ -95,9 +95,9 @@ class NotificationsScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Appointment Status Updated',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -70,6 +70,7 @@ class AppointmentDetailsScreen extends StatelessWidget {
                     ),
                   child: const Text('Delete Booking'),
                 ),
+                
               ],
             ),
           ],
