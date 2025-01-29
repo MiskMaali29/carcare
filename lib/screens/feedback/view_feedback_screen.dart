@@ -1,8 +1,10 @@
+// ignore_for_file: unused_element
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
- class ViewFeedbackScreen extends StatelessWidget {
+class ViewFeedbackScreen extends StatelessWidget {
   const ViewFeedbackScreen({Key? key}) : super(key: key);
 
   Stream<QuerySnapshot> _getFeedbackStream() {
@@ -22,101 +24,122 @@ import 'package:intl/intl.dart';
     return 0.0;
   }
 
+  Widget _buildFeedbackCard(DocumentSnapshot feedback) {
+    
+    final isCompany = FirebaseAuth.instance.currentUser?.uid == feedback.get('company_id');
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  feedback.get('user_name') ?? 'Anonymous',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                if (isCompany)
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => FirebaseFirestore.instance
+                        .collection('feedback')
+                        .doc(feedback.id)
+                        .delete(),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Service: ${feedback.get('service_name') ?? 'Unknown Service'}',
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                ...List.generate(5, (index) {
+                  return Icon(
+                    index < _parseRating(feedback.get('rating'))
+                        ? Icons.star
+                        : Icons.star_border,
+                    color: const Color(0xFFFFA000),
+                    size: 20,
+                  );
+                }),
+                Text(
+                  ' ${_parseRating(feedback.get('rating')).toStringAsFixed(1)}',
+                  style: const TextStyle(
+                    color: Color(0xFFFFA000),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              feedback.get('comment') ?? '',
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customer Feedback'),
+        title: const Text('Reviews'),
         backgroundColor: const Color(0xFF026DFE),
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _getFeedbackStream(),
+        stream: FirebaseFirestore.instance
+            .collection('feedback')
+            .orderBy('created_at', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final feedbacks = snapshot.data?.docs ?? [];
-
+          final feedbacks = snapshot.data!.docs;
           if (feedbacks.isEmpty) {
-            return const Center(
-              child: Text('No feedback yet'),
-            );
+            return const Center(child: Text('No reviews yet'));
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(8),
             itemCount: feedbacks.length,
             itemBuilder: (context, index) {
               final data = feedbacks[index].data() as Map<String, dynamic>;
-              final timestamp = data['created_at'] as Timestamp?;
-              final date = timestamp?.toDate() ?? DateTime.now();
-              final rating = _parseRating(data['rating']);
-              
               return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+                margin: const EdgeInsets.all(8),
+                child: ListTile(
+                  title: Text(data['user_name'] ?? 'Anonymous'),
+                  subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            data['user_name'] ?? 'Anonymous',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            DateFormat('MMM d, yyyy').format(date),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                        children: List.generate(5, (index) => Icon(
+                          index < (data['rating'] ?? 0) ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 16,
+                        )),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Service: ${data['service_name'] ?? 'Unknown Service'}',
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          ...List.generate(5, (index) {
-                            return Icon(
-                              index < rating
-                                  ? Icons.star
-                                  : Icons.star_border,
-                              color: const Color(0xFFFFA000),
-                              size: 20,
-                            );
-                          }),
-                          Text(
-                            ' ${rating.toStringAsFixed(1)}',
-                            style: const TextStyle(
-                              color: Color(0xFFFFA000),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        data['comment'] ?? '',
-                        style: const TextStyle(fontSize: 14),
-                      ),
+                      Text(data['comment'] ?? ''),
                     ],
                   ),
                 ),

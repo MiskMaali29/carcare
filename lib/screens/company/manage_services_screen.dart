@@ -126,6 +126,102 @@ class _ManageServicesScreenState extends State<ManageServicesScreen> {
     }
   }
 
+  void _showEditServiceDialog(Service service) {
+  _nameController.text = service.name;
+  _descriptionController.text = service.description;
+  _priceController.text = service.price.toString();
+  _durationController.text = service.duration.toString();
+
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Edit Service'),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Service Name'),
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter service name' : null,
+              ),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 3,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter description' : null,
+              ),
+              TextFormField(
+                controller: _priceController,
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter price' : null,
+              ),
+              TextFormField(
+                controller: _durationController,
+                decoration: const InputDecoration(
+                  labelText: 'Duration (minutes)',
+                  hintText: 'Enter estimated service duration',
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter duration' : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => _updateService(service.id),
+          child: const Text('Update'),
+        ),
+      ],
+    ),
+  );
+}
+
+
+Future<void> _updateService(String serviceId) async {
+  if (_formKey.currentState?.validate() ?? false) {
+    try {
+      final updatedService = {
+        'name': _nameController.text,
+        'description': _descriptionController.text,
+        'price': double.parse(_priceController.text),
+        'duration': int.parse(_durationController.text),
+      };
+
+      await FirebaseFirestore.instance
+          .collection('services')
+          .doc(serviceId)
+          .update(updatedService);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Service updated successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error updating service: $e')),
+        );
+      }
+    }
+  }
+}
+
   Future<void> _deleteService(String serviceId) async {
     try {
       await FirebaseFirestore.instance.collection('services').doc(serviceId).delete();
@@ -261,6 +357,10 @@ class _ManageServicesScreenState extends State<ManageServicesScreen> {
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () => _showDeleteConfirmation(service.id, service.name),
                             ),
+                            IconButton(
+  icon: const Icon(Icons.edit, color: Color(0xFF026DFE)),
+  onPressed: () => _showEditServiceDialog(service),
+),
                           ],
                         ),
                         const Divider(height: 24),

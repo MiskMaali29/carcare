@@ -88,13 +88,13 @@ class _BottomNavigationIconsState extends State<BottomNavigationIcons> {
           label: 'My History',
         ),
         BottomNavigationBarItem(
-          icon: Image.asset('assets/images/services.png', width: 32, height: 32),
+          icon: Image.asset('assets/images/car_services.png', width: 32, height: 32),
           label: 'services',
         ),
       ],
       currentIndex: widget.currentIndex,
-     selectedItemColor: const Color(0xFFFF6A20), // Color for the selected item
-     unselectedItemColor: const Color.fromARGB(255, 255, 141, 84), // Color for unselected items
+     selectedItemColor: const Color(0xFF026DFE), // Color for the selected item
+     unselectedItemColor: const Color(0xFF1F79F4), // Color for unselected items
      backgroundColor: const Color.fromARGB(255, 2, 19, 41), // Background color of the BottomNavigationBar
     onTap: _onItemTapped,
     );

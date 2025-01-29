@@ -20,6 +20,10 @@ dependencies:
   firebase_messaging: ^15.1.6
   flutter_local_notifications: ^18.0.1
   email_validator: ^3.0.0
+  url_launcher: ^6.3.1
+  firebase_app_check: ^0.3.2+1
+
+
 
 
 
@@ -40,14 +44,18 @@ flutter:
     - assets/images/background.png
     - assets/images/brake.png
     - assets/images/car_image.png
+    - assets/images/car_repair.png
+    - assets/images/car_services.png
     - assets/images/hi.png
     - assets/images/test.png
     - assets/images/home_screenfix.png
     - assets/images/home.png
     - assets/images/logo.png
     - assets/images/logo192.png
+    - assets/images/mechanic.png
     - assets/images/selectpic.png
     - assets/images/services.png
+    - assets/images/servicesblue.png
     - assets/images/robot.png
     - assets/images/splash_screenlogo.png
     - assets/images/splash200.png
