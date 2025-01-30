@@ -105,6 +105,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
       final service = Service.fromFirestore(serviceSnapshot.data()!, serviceSnapshot.id);
 
+
+ final DateTime appointmentDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime!.hour,
+      selectedTime!.minute,
+    );
+
       final appointmentData = {
         'name': _nameController.text.trim(),
         'card_number': _cardNumberController.text.trim(),
@@ -115,7 +124,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'service_name': service.name,
         'service_price': service.price,
         'amount_paid': service.price,
-        'appointment_date': Timestamp.fromDate(selectedDate),
+        'appointment_date': Timestamp.fromDate(appointmentDateTime),
         'appointment_time': '${selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')}',
         'service_status': 'Booked',
         'payment_status': 'Not Paid',
@@ -133,7 +142,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         );
       }
       
-      if (mounted) {
+      //if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Appointment booked successfully!')),
         );
@@ -141,15 +150,20 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           context,
           MaterialPageRoute(builder: (context) => ViewAppointmentsScreen()),
         );
-      }
-    } catch (e) {
+      
+     } catch (e) {
+    print('Error booking appointment: $e');
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to book appointment: $e')),
+        SnackBar(content: Text('Failed to book appointment: ${e.toString()}')),
       );
-    } finally {
+    }
+  } finally {
+    if (mounted) {
       setState(() => _isLoading = false);
     }
   }
+}
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(

@@ -1,6 +1,7 @@
 import 'package:carcare/screens/feedback/view_feedback_screen.dart';
 import 'package:carcare/screens/home/list.dart';
 import 'package:carcare/screens/notifications/notifications_screen.dart';
+import 'package:carcare/utils/service_icons.dart';
 import 'package:carcare/widgets/bottom_navigation_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -68,23 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildServiceIcon(String serviceName) {
-    const double iconSize = 32.0;
-    switch (serviceName.toLowerCase()) {
-      case 'oil change':
-        return const Icon(Icons.oil_barrel, color: Color(0xFF026DFE), size: iconSize);
-      case 'wheel alignment':
-        return const Icon(Icons.tire_repair, color: Color(0xFF026DFE), size: iconSize);
-      case 'brake inspection':
-        return Image.asset('assets/images/brake.png', width: iconSize, height: iconSize);
-      case 'battery replacement':
-        return const Icon(Icons.battery_charging_full, color: Color(0xFF026DFE), size: iconSize);
-      case 'air conditioning service':
-        return const Icon(Icons.ac_unit, color: Color(0xFF026DFE), size: iconSize);
-      case 'tire replacement':
-        return const Icon(Icons.tire_repair, color: Color(0xFF026DFE), size: iconSize);
-      default:
-        return const Icon(Icons.car_repair, color: Color(0xFF026DFE), size: iconSize);
-    }
+      return ServiceIcons.getServiceIcon(serviceName);
+
   }
 
   @override

@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+
+
 class CompanyDashboardScreen extends StatefulWidget {
   final String username;
   const CompanyDashboardScreen({Key? key, required this.username}) : super(key: key);
@@ -60,11 +62,15 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
+       body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              const Color(0xFF026DFE).withOpacity(0.1),
+              Colors.white.withOpacity(0.8),
+            ],
           ),
         ),
         child: Column(
@@ -162,52 +168,100 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
             ),
             const Spacer(),
 
-            // Buttons in the middle of the page
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: Column(
-                children: [
-                  _buildActionButton(
-                    label: 'Manage Services',
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/manage_services');
-                    },
-                  ),
-                  const SizedBox(height: 16), // Space between buttons
-                  _buildActionButton(
-                    label: 'View Appointments',
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/company_appointments');
-                    },
-                  ),
-                  const SizedBox(height: 16), // Space between buttons
-                  _buildActionButton(
-                    label: 'View All History',
-                    onPressed: () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                      builder: (context) => const CompanyHistoryScreen(),
-                      ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16), 
-                  ElevatedButton(
-  onPressed: () => Navigator.pushNamed(context, '/view_feedback'),
-  child: const Text('View Feedback'),
-),
-                ],
-              ),
-            ),
+         Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+  
+  child: GridView.count(
 
-            const Spacer(), // Push everything to the center
+    shrinkWrap: true,
+    crossAxisCount: 2,
+    crossAxisSpacing: 20,
+    mainAxisSpacing: 20,
+    children: [
+      _buildCircularButton(
+        icon: Icons.build,
+        label: 'Manage Services',
+        onPressed: () {
+          Navigator.pushNamed(context, '/manage_services');
+        },
+      ),
+      _buildCircularButton(
+        icon: Icons.calendar_today,
+        label: 'View Appointments',
+        onPressed: () {
+          Navigator.pushNamed(context, '/company_appointments');
+        },
+      ),
+      _buildCircularButton(
+        icon: Icons.history,
+        label: 'View History',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CompanyHistoryScreen(),
+            ),
+          );
+        },
+      ),
+      _buildCircularButton(
+        icon: Icons.feedback,
+        label: 'View Feedback',
+        onPressed: () {
+          Navigator.pushNamed(context, '/view_feedback');
+        },
+      ),
+    ],
+  ),
+),
+
+            const Spacer(), 
           ],
         ),
       ),
     );
   }
-
+Widget _buildCircularButton({
+  required IconData icon,
+  required String label,
+  required VoidCallback onPressed,
+}) {
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+            color: const Color(0xFF026DFE).withOpacity(0.3),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(60),
+            child: Padding(
+              padding: const EdgeInsets.all(22),
+              child: Icon(
+                icon,
+                size: 48,
+            color: const Color(0xFFFF6A20),
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: 12),
+      Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ],
+  );
+}
 
 // ui for the glass stats card in the dashboard
 Widget _buildGlassStatsCard(String title, String value) {
@@ -248,7 +302,7 @@ Widget _buildGlassStatsCard(String title, String value) {
         ),
       ],
     ),
-    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -289,27 +343,6 @@ Widget _buildGlassStatsCard(String title, String value) {
   );
 }
 
-// ui for the action button in the dashboard
-  Widget _buildActionButton({required String label, required VoidCallback onPressed}) {
-  return Padding(
-    padding: const EdgeInsets.only(top: 20.0), 
-    child: ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFFE5602).withOpacity(0.9),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        minimumSize: const Size.fromHeight(50), 
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(color: Colors.white, fontSize: 16),
-      ),
-    ),
-  );
-}
 
   }
 

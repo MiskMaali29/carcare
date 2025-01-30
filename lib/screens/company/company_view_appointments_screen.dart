@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-
+import '../services/notification_service.dart';
 
 class CompanyViewAppointmentsScreen extends StatelessWidget {
-  const CompanyViewAppointmentsScreen({Key? key}) : super(key: key);
+  final NotificationService _notificationService = NotificationService();
+  
+  CompanyViewAppointmentsScreen({Key? key}) : super(key: key);
 
   Stream<QuerySnapshot> getAppointmentsStream() {
     return FirebaseFirestore.instance
@@ -55,9 +57,9 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFBDDBFF).withOpacity(0.2),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color),
       ),
       child: Text(
         label,
@@ -70,6 +72,64 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _sendNotification(String userId, String serviceId, String serviceName, String status, String? rejectionReason) async {
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception('User not found');
+      }
+
+      final fcmToken = userDoc.data()?['fcmToken'];
+
+      // Create notification in Firestore
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'user_id': userId,
+        'service_id': serviceId,
+        'type': rejectionReason != null ? 'rejection' : 'status_update',
+        'service_status': status,
+        'service_name': serviceName,
+        'rejection_reason': rejectionReason,
+        'created_at': FieldValue.serverTimestamp(),
+        'read': false,
+        'title': rejectionReason != null ? 'Appointment Rejected' : 'Service Status Update',
+        'body': rejectionReason ?? 'Your service status has been updated to: $status'
+      });
+
+      // Send push notification if FCM token exists
+      if (fcmToken != null) {
+        await _notificationService.sendPushNotification(
+          fcmToken,
+          rejectionReason != null ? 'Appointment Rejected' : 'Service Status Update',
+          rejectionReason ?? 'Your service status has been updated to: $status'
+        );
+      }
+    } catch (e) {
+      print('Error sending notification: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _handleStatusUpdate(DocumentSnapshot doc, String newStatus, String? rejectionReason) async {
+    final data = doc.data() as Map<String, dynamic>;
+    final userId = data['user_id'];
+    final serviceId = data['service_id'];
+    final serviceName = data['service_name'] ?? 'Service';
+
+    if (rejectionReason != null) {
+      await _sendNotification(userId, serviceId, serviceName, 'rejected', rejectionReason);
+      await FirebaseFirestore.instance
+          .collection('appointments')
+          .doc(doc.id)
+          .delete();
+    } else if (newStatus != data['service_status']) {
+      await _sendNotification(userId, serviceId, serviceName, newStatus, null);
+    }
+  }
+
   Future<void> _showEditDialog(BuildContext context, DocumentSnapshot doc) async {
     final data = doc.data() as Map<String, dynamic>;
     String paymentStatus = data['payment_status'] ?? 'Not Paid';
@@ -77,357 +137,188 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
     String serviceStatus = data['service_status'] ?? 'Booked';
     String rejectionReason = data['rejection_reason'] ?? '';
 
-      // Function to show delete confirmation dialog
-  Future<bool> showDeleteConfirmation() async {
-    return await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Rejection'),
-          content: const Text('Are you sure you want to reject and delete this appointment?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirm', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
-  }
-
     return showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Edit Appointment: ${data['name']}'),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return SingleChildScrollView(
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Edit Appointment: ${data['name']}'),
+              content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Payment Status
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Payment Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          DropdownButton<String>(
-                            value: paymentStatus,
-                            items: ['Not Paid', 'Paid'].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(() => paymentStatus = newValue);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
+                    _buildDropdown(
+                      'Payment Status',
+                      paymentStatus,
+                      ['Not Paid', 'Paid'],
+                      (value) => setState(() => paymentStatus = value!)
                     ),
-
-                    // Approval Status
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Approval Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          DropdownButton<String>(
-                            value: approvalStatus,
-                            items: ['pending', 'approved', 'rejected'].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(() => approvalStatus = newValue);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
+                    const SizedBox(height: 16),
+                    _buildDropdown(
+                      'Approval Status',
+                      approvalStatus,
+                      ['pending', 'approved', 'rejected'],
+                      (value) => setState(() => approvalStatus = value!)
                     ),
-
-                    // Rejection Reason
-                    if (approvalStatus == 'rejected')
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: TextFormField(
-                          initialValue: rejectionReason,
-                          maxLines: 3,
-                          decoration: const InputDecoration(
-                            labelText: 'Rejection Reason',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (value) {
-                            rejectionReason = value;
-                          },
+                    if (approvalStatus == 'rejected') ...[
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        initialValue: rejectionReason,
+                        decoration: const InputDecoration(
+                          labelText: 'Rejection Reason',
+                          border: OutlineInputBorder(),
                         ),
+                        maxLines: 3,
+                        onChanged: (value) => rejectionReason = value,
                       ),
-
-                    // Service Status
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Service Status:', style: TextStyle(fontWeight: FontWeight.bold)),
-                          DropdownButton<String>(
-                            value: serviceStatus,
-                            items: ['Booked', 'In Progress', 'Completed'].map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              if (newValue != null) {
-                                setState(() => serviceStatus = newValue);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                      
+                    ],
+                    const SizedBox(height: 16),
+                    _buildDropdown(
+                      'Service Status',
+                      serviceStatus,
+                      ['Booked', 'In Progress', 'Completed'],
+                      (value) => setState(() => serviceStatus = value!)
                     ),
                   ],
                 ),
-              );
-            },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      if (approvalStatus == 'rejected') {
+                        await _handleStatusUpdate(doc, 'rejected', rejectionReason);
+                      } else {
+                        await FirebaseFirestore.instance
+                            .collection('appointments')
+                            .doc(doc.id)
+                            .update({
+                          'payment_status': paymentStatus,
+                          'approval_status': approvalStatus,
+                          'service_status': serviceStatus,
+                          'updated_at': FieldValue.serverTimestamp(),
+                        });
+
+                        if (serviceStatus != data['service_status']) {
+                          await _handleStatusUpdate(doc, serviceStatus, null);
+                        }
+                      }
+
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Appointment updated successfully')),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error updating appointment: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Widget _buildDropdown(String label, String value, List<String> items, Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: value,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                   final data = doc.data() as Map<String, dynamic>;
-                   final userId = data['user_id'];
-
-                   // If status is changed to rejected, show confirmation dialog
-                if (approvalStatus == 'rejected') {
-                  bool confirmDelete = await showDeleteConfirmation();
-                  if (!confirmDelete) return;
-
-                  // Send notification before deleting
-                  await FirebaseFirestore.instance.collection('notifications').add({
-                    'user_id': userId,
-                    'service_id': data['service_id'],
-                    'status': 'rejected',
-                    'rejection_reason': rejectionReason,
-                    'created_at': FieldValue.serverTimestamp(),
-                    'read': false,
-                    'type': 'rejection'
-                  });
-
-                  // Delete the appointment
-                  await FirebaseFirestore.instance
-                      .collection('appointments')
-                      .doc(doc.id)
-                      .delete();
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Appointment rejected and deleted successfully!')),
-                    );
-                    Navigator.pop(context);
-                  }
-                } else {
-
-                  await FirebaseFirestore.instance
-                      .collection('appointments')
-                      .doc(doc.id)
-                      .update({
-                    'payment_status': paymentStatus,
-                    'approval_status': approvalStatus,
-                    'service_status': serviceStatus,
-                    'rejection_reason': approvalStatus == 'rejected' ? rejectionReason : null,
-                    'updated_at': FieldValue.serverTimestamp(),
-                  }); 
-
-// Send status update notification
-                  if (serviceStatus != data['service_status']) {
-                    await FirebaseFirestore.instance.collection('notifications').add({
-                      'user_id': userId,
-                      'service_id': data['service_id'],
-                      'type': 'status_update',
-                      'service_status': serviceStatus,
-                      'created_at': FieldValue.serverTimestamp(),
-                      'read': false
-                    });
-                  }
-
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Appointment updated successfully!')),
-                    );
-                    Navigator.pop(context);
-                  }
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to update appointment: $e')),
-                  );
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF026DFE)),
-            child: const Text('Save Changes'),
-          ),
-        ],
-      );
-    },
-  );
-}
-// // When company rejects an appointment
-//  if (approvalStatus == 'rejected') {
-// await FirebaseFirestore.instance.collection('notifications').add({
-//   'user_id': userId,
-//   'service_id': data['service_id'],
-//   'status': 'rejected',
-//   'rejection_reason': rejectionReason,
-//   'created_at': FieldValue.serverTimestamp(),
-//   'read': false,
-//   'type': 'rejection'
-// });
-//   }
-
-
-// When company updates status
-
-// if (serviceStatus != data['service_status']) {
-// await FirebaseFirestore.instance.collection('notifications').add({
-//   'user_id': userId,
-//   'service_id': data['service_id'],
-//   'type': 'status_update',
-//   'service_status': serviceStatus,  // 'In Progress', 'Completed', etc.
-//   'created_at': FieldValue.serverTimestamp(),
-//   'read': false
-// });
-//   }
-
-// // If service status changed, create status update notification
-//       if (serviceStatus != data['service_status']) {
-//         await FirebaseFirestore.instance.collection('notifications').add({
-//           'user_id': data['user_id'],  // Note: use data['user_id'] not userId
-//           'service_id': data['service_id'],
-//           'type': 'status_update',
-//           'service_status': serviceStatus,
-//           'created_at': FieldValue.serverTimestamp(),
-//           'read': false
-//         });
-//       }
-
-//                   ScaffoldMessenger.of(context).showSnackBar(
-//                     const SnackBar(content: Text('Appointment updated successfully!')),
-//                   );
-//                   Navigator.pop(context);
-//                 } catch (e) {
-//                   ScaffoldMessenger.of(context).showSnackBar(
-//                     SnackBar(content: Text('Failed to update appointment: $e')),
-//                   );
-//                 }
-//               },
-//               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF026DFE)),
-//               child: const Text('Save Changes'),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-//   }
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
 
   Widget _buildAppointmentCard(BuildContext context, DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
     return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              data['name'] ?? 'Unknown',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ExpansionTile(
+        title: Text(
+          data['name'] ?? 'Unknown Customer',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(formatDate(data['created_at'])),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  formatDate(data['created_at']),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
+                _buildInfoRow('Service', data['service_name'] ?? 'Unknown Service'),
+                _buildInfoRow('Phone', data['phone_number'] ?? 'N/A'),
+                _buildInfoRow('Car Type', data['car_type'] ?? 'N/A'),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatusChip(
+                      data['payment_status'] ?? 'Not Paid',
+                      _getStatusColor(data['payment_status'] ?? 'Not Paid', 'payment'),
+                    ),
+                    _buildStatusChip(
+                      data['approval_status'] ?? 'pending',
+                      _getStatusColor(data['approval_status'] ?? 'pending', 'approval'),
+                    ),
+                    _buildStatusChip(
+                      data['service_status'] ?? 'Booked',
+                      _getStatusColor(data['service_status'] ?? 'Booked', 'service'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showEditDialog(context, doc),
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Edit Appointment'),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _buildStatusChip(
-                    data['payment_status'] ?? 'Not Paid',
-                    _getStatusColor(data['payment_status'] ?? 'Not Paid', 'payment'),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatusChip(
-                    data['approval_status'] ?? 'pending',
-                    _getStatusColor(data['approval_status'] ?? 'pending', 'approval'),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatusChip(
-                    data['service_status'] ?? 'Booked',
-                    _getStatusColor(data['service_status'] ?? 'Booked', 'service'),
-                  ),
-                 
-                ],
-              ),
-              if (data['approval_status'] == 'rejected')
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'Rejection Reason: ${data['rejection_reason'] ?? 'No reason provided'}',
-                    style: const TextStyle(color: Colors.red, fontSize: 14),
-                  ),
-                ),
-            ],
           ),
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: () => _showEditDialog(context, doc),
-        ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(value),
+        ],
       ),
     );
   }
@@ -436,7 +327,7 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('View Appointments'),
+        title: const Text('Appointments'),
         backgroundColor: const Color(0xFF026DFE),
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -457,18 +348,11 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.calendar_today, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
                   Text(
                     'No appointments found',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                 ],
               ),
@@ -477,7 +361,6 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
 
           return ListView.builder(
             itemCount: appointments.length,
-            padding: const EdgeInsets.all(8),
             itemBuilder: (context, index) =>
                 _buildAppointmentCard(context, appointments[index]),
           );

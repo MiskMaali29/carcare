@@ -1,5 +1,6 @@
 // lib/screens/services/services_screen.dart
 
+import 'package:carcare/utils/service_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -77,22 +78,8 @@ class ServiceCard extends StatelessWidget {
   const ServiceCard({Key? key, required this.service}) : super(key: key);
 
   Widget _getServiceIcon(String serviceName) {
-    switch (serviceName.toLowerCase()) {
-      case 'oil change':
-        return const Icon(Icons.oil_barrel, color: Color(0xFF026DFE), size: 24);
-      case 'wheel alignment':
-        return const Icon(Icons.tire_repair, color: Color(0xFF026DFE), size: 24);
-      case 'brake inspection':
-        return Image.asset('assets/images/brake.png', width: 24, height: 24);
-      case 'battery replacement':
-        return const Icon(Icons.battery_charging_full, color: Color(0xFF026DFE), size: 24);
-      case 'air conditioning service':
-        return const Icon(Icons.ac_unit, color: Color(0xFF026DFE), size: 24);
-      case 'tire replacement':
-        return const Icon(Icons.tire_repair, color: Color(0xFF026DFE), size: 24);
-      default:
-        return const Icon(Icons.car_repair, color: Color(0xFF026DFE), size: 24);
-    }
+     return ServiceIcons.getServiceIcon(serviceName);
+
   }
 
   @override

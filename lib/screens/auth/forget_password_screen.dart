@@ -23,8 +23,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Future<void> _resetPassword() async {
     setState(() => _errorMessage = null);
-
-    // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -89,21 +87,39 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Forgot Password',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                    // Container(
+                    //  alignment: Alignment.center,
+                    //   padding: const EdgeInsets.all(16),
+                    //   decoration: BoxDecoration(
+                    //     color: const Color(0xFF026DFE).withOpacity(0.1),
+                    //     shape: BoxShape.circle,
+                    //   ),
+                    //   child: const Icon(
+                    //     Icons.lock_reset,
+                    //     size: 32,
+                    //     color: Color(0xFF026DFE),
+                    //   ),
+                    // ),
+                  const Center(
+                    child: Text(
+                      'Forgot Password',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                         color: Color(0xFF026DFE)
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Enter your email address to receive a password reset link.',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 16,
+                  const SizedBox(height: 16),
+                    Text(
+                      'Don\'t worry! It happens. Please enter the email address associated with your account.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        height: 1.5,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _emailController,
@@ -112,7 +128,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     enableSuggestions: false,
                     decoration: InputDecoration(
                       labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email),
+                      prefixIcon: const Icon(Icons.email , color: Color(0xFF026DFE)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -128,7 +144,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       return null;
                     },
                   ),
-                 // Using InkWell with Container for custom button
+   const SizedBox(height: 24),
 SizedBox(
   width: double.infinity,
   height: 50,
@@ -167,7 +183,7 @@ SizedBox(
                     children: [
                       const Text(
                         "Don't have an account? ",
-                        style: TextStyle(color: Colors.grey),
+                        style: TextStyle(color: Color.fromARGB(255, 90, 90, 90)),
                       ),
                       TextButton(
                         onPressed: () {

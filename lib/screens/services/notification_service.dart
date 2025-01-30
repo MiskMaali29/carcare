@@ -1,5 +1,3 @@
-// lib/services/notification_service.dart
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,7 +9,6 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   
   Future<void> initialize() async {
-    // Request permission for notifications
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       badge: true,
@@ -54,7 +51,6 @@ class NotificationService {
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    // Show local notification when app is in foreground
     const androidDetails = AndroidNotificationDetails(
       'appointment_reminders',
       'Appointment Reminders',
@@ -77,7 +73,49 @@ class NotificationService {
     );
   }
 
-  // Schedule local notification
+  Future<void> sendPushNotification(
+    String fcmToken,
+    String title,
+    String body,
+  ) async {
+    try {
+      // Create notification document in Firestore
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'fcmToken': fcmToken,
+        'title': title,
+        'body': body,
+        'created_at': FieldValue.serverTimestamp(),
+        'status': 'pending',
+        'type': 'push_notification'
+      });
+
+      // Show local notification
+      const androidDetails = AndroidNotificationDetails(
+        'appointment_updates',
+        'Appointment Updates',
+        channelDescription: 'Updates about your appointments',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+
+      const iosDetails = DarwinNotificationDetails();
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _localNotifications.show(
+        DateTime.now().millisecond,
+        title,
+        body,
+        details,
+      );
+    } catch (e) {
+      print('Error sending notification: $e');
+      rethrow;
+    }
+  }
+
   Future<void> scheduleAppointmentReminder(DateTime appointmentTime, String title, String body) async {
     // Schedule 24h before
     final notification24h = appointmentTime.subtract(const Duration(hours: 24));

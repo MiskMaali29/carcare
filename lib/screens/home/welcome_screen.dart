@@ -66,10 +66,10 @@ class WelcomeScreen extends StatelessWidget {
             left: -20,
             right: -20,
             child: Container(
-              height: 300,
+              height: 330,
               decoration: BoxDecoration(
                 color: const Color(0xFF026DFE),
-                borderRadius: BorderRadius.circular(100),
+                borderRadius: BorderRadius.circular(120),
               ),
             ),
           ),
@@ -80,7 +80,7 @@ class WelcomeScreen extends StatelessWidget {
               children: [
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.only(top: 80),
+                  padding: const EdgeInsets.only(top: 50),
                   child: Image.asset(
                     'assets/images/selectpic.png',
                     height: 220,
@@ -110,7 +110,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  padding: const EdgeInsets.symmetric(vertical: 30),
                   child: Container(
                     width: double.infinity,
                     alignment: Alignment.center,
@@ -134,7 +134,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 // Buttons Section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
                   child: Column(
                     children: [
                       ElevatedButton(

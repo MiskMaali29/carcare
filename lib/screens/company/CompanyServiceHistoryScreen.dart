@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-
 class CompanyHistoryScreen extends StatefulWidget {
   const CompanyHistoryScreen({Key? key}) : super(key: key);
 
@@ -281,46 +280,79 @@ class _CompanyHistoryScreenState extends State<CompanyHistoryScreen> {
   }
 
   Future<void> _updateServicePrice(BuildContext context, String appointmentId, double currentPrice) async {
-    double newPrice = currentPrice;
-    
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Update Service Price'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'New Price',
-                prefixText: '\$',
-              ),
-              onChanged: (value) {
-                newPrice = double.tryParse(value) ?? currentPrice;
-              },
+  double newPrice = currentPrice;
+  String note = ''; 
+  
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Update Service Details'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'New Price',
+              prefixText: '\$',
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection('appointments')
-                  .doc(appointmentId)
-                  .update({'amount_paid': newPrice});
-              Navigator.pop(context);
+            onChanged: (value) {
+              newPrice = double.tryParse(value) ?? currentPrice;
             },
-            child: const Text('Update'),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            maxLines: 3,     
+            decoration: const InputDecoration(
+              labelText: 'Add Note',
+              hintText: 'Enter note for customer',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              note = value;
+            },
           ),
         ],
       ),
-    );
-  }
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            try {
+              // تحديث السعر والملاحظة وحالة الدفع
+              await FirebaseFirestore.instance
+                  .collection('appointments')
+                  .doc(appointmentId)
+                  .update({
+                'amount_paid': newPrice,
+                'service_note': note,
+                'payment_status': 'Paid', // تغيير حالة الدفع تلقائياً
+                'note_timestamp': FieldValue.serverTimestamp(),
+              });
+              
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Service details updated successfully!')),
+                );
+                Navigator.pop(context);
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error updating service: $e')),
+                );
+              }
+            }
+          },
+          child: const Text('Update'),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Card(
@@ -464,8 +496,8 @@ class _CompanyHistoryScreenState extends State<CompanyHistoryScreen> {
                     // final data = doc.data() as Map<String, dynamic>;
                     // final amount = double.tryParse(data['amount_paid']?.toString() ?? '0') ?? 0.0;
                   Widget _buildAppointmentCard(DocumentSnapshot doc) {
-  final data = doc.data() as Map<String, dynamic>;
-  final amount = double.tryParse(data['amount_paid']?.toString() ?? '0') ?? 0.0;
+                   final data = doc.data() as Map<String, dynamic>;
+                    final amount = double.tryParse(data['amount_paid']?.toString() ?? '0') ?? 0.0;
     
                     return Card(
                       elevation: 2,
@@ -529,12 +561,52 @@ class _CompanyHistoryScreenState extends State<CompanyHistoryScreen> {
                                 _buildInfoRow('Car Type', data['car_type'] ?? 'N/A'),
                                 _buildInfoRow('Card Number', data['card_number'] ?? 'N/A'),
                                 
+
+                                FutureBuilder<String>(
+    future: _getServiceName(data['service_id'] ?? ''),
+    builder: (context, snapshot) {
+      return _buildInfoRow(
+        'Service',
+        snapshot.data ?? 'Loading...',
+      );
+    },
+  ),
                                 if (data['approval_status'] == 'rejected')
                                   _buildInfoRow(
                                     'Rejection Reason',
                                     data['rejection_reason'] ?? 'No reason provided',
                                     isError: true
                                   ),
+
+                                   if (data['service_note'] != null && data['service_note'].toString().isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(),
+                  const Text(
+                    'Service Note:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Text(
+                      data['service_note'],
+                      style: const TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
                                 const SizedBox(height: 12),
                                 

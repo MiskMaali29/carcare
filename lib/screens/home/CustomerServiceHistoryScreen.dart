@@ -207,7 +207,76 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
                           _buildInfoRow('Amount', '\$${data['amount_paid'] ?? '0.00'}'),
                           _buildInfoRow('Car Type', data['car_type'] ?? 'N/A'),
                           _buildInfoRow('Appointment Time', data['appointment_time'] ?? 'N/A'),
-                          _buildInfoRow('Service ID', data['service_id']?.toString() ?? 'N/A'),
+FutureBuilder<DocumentSnapshot>(
+  future: FirebaseFirestore.instance
+      .collection('services')
+      .doc(data['service_id'].toString())
+      .get(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return _buildInfoRow('Service', 'Loading...');
+    }
+
+    if (!snapshot.hasData || !snapshot.data!.exists) {
+      return _buildInfoRow('Service', 'Service not found');
+    }
+
+    final serviceData = snapshot.data!.data() as Map<String, dynamic>;
+    return _buildInfoRow(
+      'Service',
+      serviceData['name'] ?? 'Unnamed Service',
+    );
+  },
+),
+                           // Add Note Section
+            if (data['service_note'] != null && data['service_note'].toString().isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(height: 24),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.note_alt,
+                              size: 20,
+                              color: Color(0xFF026DFE),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Service Note:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF026DFE),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          data['service_note'],
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
                           if (data['approval_status'] == 'rejected')
                             _buildInfoRow(
                               'Rejection Reason', 

@@ -2,7 +2,6 @@
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
 import 'package:carcare/screens/home/about_us.dart';
 import 'profile.dart';  // Add this import at the top of list.dart
-import 'package:carcare/screens/home/settings_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'book_appointment_screen.dart';
@@ -48,7 +47,9 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
+  return Drawer(
+    child: Container( // Add this container
+      color: Colors.white, // Or any other fixed background color
       child: SlideTransition(
         position: _slideAnimation,
         child: Column(
@@ -56,25 +57,27 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
             // Fixed DrawerHeader
             Container(
               padding: const EdgeInsets.all(25),
+              width: double.infinity, // Ensure full width
               decoration: const BoxDecoration(
-                color: AppColors.primary,
+                color: const Color(0xFF026DFE),
               ),
               child: SafeArea(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,  // Important change
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const CircleAvatar(
-                      radius: 30,  // Reduced size
+                      radius: 30,
                       backgroundImage: AssetImage('assets/images/logo192.png'),
-                      backgroundColor: AppColors.background,
+                      backgroundColor:  Color(0xFF026DFE),
+
                     ),
-                    const SizedBox(height: 8),  // Reduced spacing
+                    const SizedBox(height: 8),
                     Text(
                       'Hello, ${widget.username}',
                       style: const TextStyle(
-                        color: AppColors.babyblue,
-                        fontSize: 20,  // Reduced font size
+                      color: Colors.white, 
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
@@ -152,14 +155,7 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
         //             );
         //           },
         //         ),
-                  _buildMenuItem(
-                    icon: Icons.settings,
-                    title: 'Settings',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                    ),
-                  ),
+               
                 ],
               ),
             ),
@@ -179,26 +175,27 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
       );
     }
   },
-),
-          ],
+), ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // Helper method for menu items
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    Color color = AppColors.secondary,
+    Color color = const Color(0xFF026DFE),
+
   }) {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(
         title,
         style: TextStyle(
-          color: color == AppColors.secondary ? AppColors.textPrimary : color,
+          color: color == Color(0xFF026DFE) ? AppColors.textPrimary : color,
           fontSize: 20,
         ),
       ),

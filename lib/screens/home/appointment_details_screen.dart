@@ -53,6 +53,44 @@ class AppointmentDetailsScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text('Service Status: ${appointment.serviceStatus}',
                 style: const TextStyle(fontSize: 16)),
+
+                 if (appointment.serviceNote != null && appointment.serviceNote!.isNotEmpty) 
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Service Note:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          appointment.serviceNote!,
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
             const SizedBox(height: 24),
             Row(
               children: [

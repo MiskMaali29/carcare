@@ -119,13 +119,17 @@ class ViewAppointmentsScreen extends StatelessWidget {
                           _buildRow(Icons.credit_card_outlined, 'Card Number', data['card_number']),
                           _buildRow(Icons.car_repair, 'Service ID', data['service_id']),
                           _buildRow(Icons.directions_car_outlined, 'Car Type', data['car_type']),
-                          const SizedBox(height: 16),
+
+                          
+                          const SizedBox(height: 12),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 _buildChip('Payment', data['payment_status'], Colors.green, Colors.red),
+                                    const SizedBox(width: 16),       
+
                                 _buildChip('Status', data['service_status'], Colors.blue, Colors.orange),
                               ],
                             ),
@@ -224,17 +228,4 @@ void _showDeleteConfirmation(BuildContext context, String appointmentId, Timesta
   );
 }
 
-  // ignore: unused_element
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'in progress':
-        return Colors.orange;
-      case 'booked':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
 }
