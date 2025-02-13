@@ -563,11 +563,11 @@ class _CompanyHistoryScreenState extends State<CompanyHistoryScreen> {
                                 
 
                                 FutureBuilder<String>(
-    future: _getServiceName(data['service_id'] ?? ''),
-    builder: (context, snapshot) {
-      return _buildInfoRow(
-        'Service',
-        snapshot.data ?? 'Loading...',
+                                future: _getServiceName(data['service_id'] ?? ''),
+                                builder: (context, snapshot) {
+                                return _buildInfoRow(
+                                'Service',
+                                snapshot.data ?? 'Loading...',
       );
     },
   ),

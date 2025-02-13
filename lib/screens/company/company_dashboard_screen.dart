@@ -169,14 +169,16 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
             const Spacer(),
 
          Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-  
-  child: GridView.count(
+  padding: const EdgeInsets.symmetric(horizontal: 22.0),
+  child: SizedBox(
+    height: 400, // Set a fixed height for the GridView
+    child: GridView.count(
 
     shrinkWrap: true,
     crossAxisCount: 2,
-    crossAxisSpacing: 20,
+    crossAxisSpacing: 0,
     mainAxisSpacing: 20,
+    
     children: [
       _buildCircularButton(
         icon: Icons.build,
@@ -214,6 +216,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
     ],
   ),
 ),
+         ),
 
             const Spacer(), 
           ],
@@ -226,43 +229,51 @@ Widget _buildCircularButton({
   required String label,
   required VoidCallback onPressed,
 }) {
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
+   return SizedBox(
+     width: 120, // Fixed width for the button
+    height: 150, // Fixed height for the button (to accommodate text)
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 100, // Fixed width for the circular button
+          height: 100, // Fixed height for the circular button
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
             color: const Color(0xFF026DFE).withOpacity(0.3),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: BorderRadius.circular(60),
-            child: Padding(
-              padding: const EdgeInsets.all(22),
-              child: Icon(
-                icon,
-                size: 48,
-            color: const Color(0xFFFF6A20),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(50), // Circular shape
+              child: Center(
+                child: Icon(
+                  icon,
+                  size: 48,
+                  color: const Color(0xFFFF6A20).withOpacity(0.8),
+                ),
               ),
             ),
           ),
         ),
-      ),
-      const SizedBox(height: 12),
-      Text(
-        label,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+        const SizedBox(height: 8), // Spacing between icon and text
+        Flexible(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14, // Reduced font size to fit within the space
+              fontWeight: FontWeight.bold,
+            ),
+            maxLines: 2, // Allow text to wrap to a second line if needed
+            overflow: TextOverflow.ellipsis, // Handle overflow gracefully
+          ),
         ),
-      ),
-    ],
+      ],
+    ),
   );
 }
-
 // ui for the glass stats card in the dashboard
 Widget _buildGlassStatsCard(String title, String value) {
   IconData getCardIcon() {

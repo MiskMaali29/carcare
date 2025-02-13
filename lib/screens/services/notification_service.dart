@@ -16,7 +16,6 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // Initialize local notifications
       const initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
       const initializationSettingsIOS = DarwinInitializationSettings();
       const initializationSettings = InitializationSettings(
@@ -26,16 +25,13 @@ class NotificationService {
 
       await _localNotifications.initialize(initializationSettings);
 
-      // Get FCM token
       String? token = await _fcm.getToken();
       if (token != null) {
         await _saveFcmToken(token);
       }
 
-      // Listen for token refresh
       _fcm.onTokenRefresh.listen(_saveFcmToken);
 
-      // Handle incoming messages when app is in foreground
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     }
   }

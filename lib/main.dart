@@ -187,7 +187,6 @@ class MyApp extends StatelessWidget {
           child: Stack(
             children: [
               child!,
-              // You can add global error handling or overlays here
             ],
           ),
         );

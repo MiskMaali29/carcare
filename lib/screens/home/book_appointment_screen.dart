@@ -1,6 +1,7 @@
 import 'package:carcare/models/service.dart';
 
 import 'package:carcare/screens/services/appointment_service.dart';
+import 'package:carcare/screens/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -133,7 +134,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       };
 
       await _appointmentService.addAppointment(appointmentData);
+            final notificationService = NotificationService();
+      await notificationService.scheduleAppointmentReminder(
+        appointmentDateTime,
+        'Upcoming Appointment',
+        'You have a ${service.name} appointment tomorrow at ${selectedTime!.format(context)}'
+      );
       
+
   if (mounted) {
         NotificationOverlay.show(
           context,
@@ -309,7 +317,7 @@ Widget buildBottomSection() {
         ),
          actions: [
         IconButton(
-          icon: const Icon(Icons.event_note, size: 26), // أيقونة محسّنة
+          icon: const Icon(Icons.event_note, size: 26), 
           onPressed: () {
             Navigator.push(
               context,

@@ -1,8 +1,10 @@
 import 'package:carcare/screens/feedback/view_feedback_screen.dart';
 import 'package:carcare/screens/home/list.dart';
 import 'package:carcare/screens/notifications/notifications_screen.dart';
+import 'package:carcare/screens/services/service_details.dart';
 import 'package:carcare/utils/service_icons.dart';
 import 'package:carcare/widgets/bottom_navigation_icons.dart';
+import 'package:carcare/widgets/floating_chat_button.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,9 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF026DFE),
-      body: SafeArea(
-        child: Column(
+      body: Stack(
+      //  child: Column(
           children: [
+             SafeArea(
+              child: Column(
+            children: [
             // Header Section
             Padding(
               padding: const EdgeInsets.all(16),
@@ -195,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       // Services List
-                      Container(
+                      SizedBox(
                         height: 120,
                         child: _isLoading
                             ? const Center(child: CircularProgressIndicator())
@@ -220,14 +225,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                     width: 100,
                                     margin: const EdgeInsets.only(right: 16),
                                     child: GestureDetector(
-                                      onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => BookAppointmentScreen(
-                                            initialServiceId: service.id,
-                                          ),
-                                        ),
-                                      ),
+                                     onTap: () {
+                                    showModalBottomSheet(
+                                     context: context,
+                                     isScrollControlled: true,
+                                     backgroundColor: Colors.transparent,
+                                     builder: (context) => ServiceDetails(service: service),
+                                      );
+                                     },
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
@@ -237,7 +242,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                               color: const Color(0xFF026DFE)
                                                   .withOpacity(0.1),
                                               borderRadius:
-                                                  BorderRadius.circular(15),
+                                      
+                                      
+                                      
+                                      
+                                           BorderRadius.circular(15),
                                             ),
                                             child: _buildServiceIcon(service.name),
                                           ),
@@ -348,9 +357,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ],
                                   ),
-                                  child: Column(
+                                  child: const Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Icon(Icons.star,
                                           color: Color(0xFFFFD700)),
                                       SizedBox(height: 8),
@@ -411,10 +420,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ],
                                   ),
-                                  child: Column(
+                                  child: const Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
-                                    children: const [
+                                    children: [
                                       Icon(Icons.emergency, color: Colors.red),
                                       SizedBox(height: 8),
                                       Text(
@@ -448,6 +457,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+        const FloatingChatButton(),
+
+    ],
+    ),
       drawer: AppDrawer(username: widget.username),
       bottomNavigationBar: const BottomNavigationIcons(currentIndex: 0),
     );

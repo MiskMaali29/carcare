@@ -59,7 +59,7 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
               padding: const EdgeInsets.all(25),
               width: double.infinity, // Ensure full width
               decoration: const BoxDecoration(
-                color: const Color(0xFF026DFE),
+                color: Color(0xFF026DFE),
               ),
               child: SafeArea(
                 child: Column(
@@ -195,7 +195,7 @@ class _AppDrawerState extends State<AppDrawer> with SingleTickerProviderStateMix
       title: Text(
         title,
         style: TextStyle(
-          color: color == Color(0xFF026DFE) ? AppColors.textPrimary : color,
+          color: color == const Color(0xFF026DFE) ? AppColors.textPrimary : color,
           fontSize: 20,
         ),
       ),

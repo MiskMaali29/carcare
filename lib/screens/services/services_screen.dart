@@ -222,7 +222,7 @@ class ServiceCard extends StatelessWidget {
                       color: const Color(0xFF026DFE).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: _getServiceIcon(service.name),  // Using the same method here
+                    child: _getServiceIcon(service.name),  
                   ),
                   const SizedBox(height: 20),
                   Text(
