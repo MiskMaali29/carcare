@@ -111,8 +111,9 @@ class MyApp extends StatelessWidget {
           );
         },
       ),
+
       routes: {
-      ' /welcome': (context) => const WelcomeScreen(),
+        ' /welcome': (context) => const WelcomeScreen(),
         '/login_customer': (context) => const LoginScreen(),
         '/login_company': (context) => const CompanyLoginScreen(),
         '/signup': (context) => const RegisterScreen(),

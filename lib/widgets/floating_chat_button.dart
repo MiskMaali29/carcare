@@ -1,10 +1,9 @@
-// lib/widgets/floating_chat_button.dart
 
 import 'package:flutter/material.dart';
 import 'chatbase_widget.dart';
 
 class FloatingChatButton extends StatefulWidget {  // Changed to StatefulWidget
-  const FloatingChatButton({Key? key}) : super(key: key);
+  const FloatingChatButton({super.key});
 
   @override
   State<FloatingChatButton> createState() => _FloatingChatButtonState();
@@ -19,25 +18,23 @@ class _FloatingChatButtonState extends State<FloatingChatButton>
   void initState() {
     super.initState();
     
-    // Initialize animation controller
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),  // One full animation cycle takes 2 seconds
+      duration: const Duration(seconds: 2),  
       vsync: this,
-    )..repeat(reverse: true);  // Make it go back and forth continuously
+    )..repeat(reverse: true);  
 
-    // Create a Tween animation from -5 to 5
     _animation = Tween<double>(
       begin: -5.0,  // Move up 5 pixels
       end: 5.0,     // Move down 5 pixels
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,  // Smooth animation curve
+      curve: Curves.easeInOut,  
     ));
   }
 
   @override
   void dispose() {
-    _controller.dispose();  // Clean up the controller
+    _controller.dispose();  
     super.dispose();
   }
 
@@ -48,7 +45,7 @@ class _FloatingChatButtonState extends State<FloatingChatButton>
       builder: (context, child) {
         return Positioned(
           right: 16,
-          bottom: 30 + _animation.value,  // Add animation value to base position
+          bottom: 30 + _animation.value,  
           child: Material(
             elevation: 4,
             borderRadius: BorderRadius.circular(48),
@@ -92,7 +89,7 @@ class _FloatingChatButtonState extends State<FloatingChatButton>
 
 // Keep your ChatScreen class as is
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({Key? key}) : super(key: key);
+  const ChatScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -6,8 +6,7 @@ import '../../models/appointment.dart';
 class AppointmentDetailsScreen extends StatelessWidget {
   final Appointment appointment; // Pass the Appointment object
 
-  AppointmentDetailsScreen({Key? key, required this.appointment})
-      : super(key: key);
+  AppointmentDetailsScreen({super.key, required this.appointment});
 
   final _appointmentService = AppointmentService(); // Service to delete/update
 

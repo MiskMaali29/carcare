@@ -15,7 +15,7 @@ import '../services/services_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String username;
-  const HomeScreen({Key? key, required this.username}) : super(key: key);
+  const HomeScreen({super.key, required this.username});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();

@@ -10,11 +10,11 @@ class AddFeedbackScreen extends StatefulWidget {
   final String serviceName;
 
   const AddFeedbackScreen({
-    Key? key,
+    super.key,
     required this.appointmentId,
     required this.serviceId,
     required this.serviceName,
-  }) : super(key: key);
+  });
 
   @override
   _AddFeedbackScreenState createState() => _AddFeedbackScreenState();

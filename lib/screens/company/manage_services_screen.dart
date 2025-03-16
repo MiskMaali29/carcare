@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/service.dart';
 
 class ManageServicesScreen extends StatefulWidget {
-  const ManageServicesScreen({Key? key}) : super(key: key);
+  const ManageServicesScreen({super.key});
 
   @override
   _ManageServicesScreenState createState() => _ManageServicesScreenState();

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class ChatWidget extends StatefulWidget {
-  const ChatWidget({Key? key}) : super(key: key);
+  const ChatWidget({super.key});
 
   @override
   State<ChatWidget> createState() => _ChatWidgetState();
@@ -48,7 +48,7 @@ class _ChatWidgetState extends State<ChatWidget> {
 }
 
 class ChatButton extends StatelessWidget {
-  const ChatButton({Key? key}) : super(key: key);
+  const ChatButton({super.key});
 
   void _openChat(BuildContext context) {
     showModalBottomSheet(

@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class CompanyDashboardScreen extends StatefulWidget {
   final String username;
-  const CompanyDashboardScreen({Key? key, required this.username}) : super(key: key);
+  const CompanyDashboardScreen({super.key, required this.username});
 
   @override
   _CompanyDashboardScreenState createState() => _CompanyDashboardScreenState();

@@ -14,9 +14,9 @@ class BookAppointmentScreen extends StatefulWidget {
 final String? initialServiceId;
 
 const BookAppointmentScreen({
-    Key? key, 
+    super.key, 
     this.initialServiceId  
-  }) : super(key: key);
+  });
 
 
   @override
@@ -134,12 +134,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       };
 
       await _appointmentService.addAppointment(appointmentData);
-            final notificationService = NotificationService();
+      final notificationService = NotificationService();
+      await notificationService.initialize(); 
       await notificationService.scheduleAppointmentReminder(
         appointmentDateTime,
         'Upcoming Appointment',
         'You have a ${service.name} appointment tomorrow at ${selectedTime!.format(context)}'
       );
+
+      
       
 
   if (mounted) {
@@ -171,7 +174,12 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       setState(() => _isLoading = false);
     }
   }
+
+   
 }
+
+
+
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(

@@ -3,12 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
+
 
 class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   
   Future<void> initialize() async {
+        tz.initializeTimeZones();
+
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       badge: true,
@@ -37,14 +41,36 @@ class NotificationService {
   }
 
   Future<void> _saveFcmToken(String token) async {
+  try {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance
+      // First check if document exists
+      final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
-          .update({'fcmToken': token});
+          .get();
+
+      if (userDoc.exists) {
+        // Update existing document
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'fcmToken': token});
+      } else {
+        // Create new document
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .set({
+              'fcmToken': token,
+              'createdAt': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+      }
     }
+  } catch (e) {
+    print('Error saving FCM token: $e');
   }
+}
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
@@ -113,26 +139,37 @@ class NotificationService {
   }
 
   Future<void> scheduleAppointmentReminder(DateTime appointmentTime, String title, String body) async {
+  try {
     // Schedule 24h before
     final notification24h = appointmentTime.subtract(const Duration(hours: 24));
     if (notification24h.isAfter(DateTime.now())) {
+      print('Scheduling 24h notification for: ${notification24h.toString()}');
       await _scheduleLocalNotification(
         notification24h,
         '24h Reminder: $title',
         body,
       );
+    } else {
+      print('24h notification time has already passed: ${notification24h.toString()}');
     }
 
-    // Schedule on the day
+     // Schedule on the day
     final notificationSameDay = appointmentTime.subtract(const Duration(hours: 2));
     if (notificationSameDay.isAfter(DateTime.now())) {
+      print('Scheduling same-day notification for: ${notificationSameDay.toString()}');
       await _scheduleLocalNotification(
         notificationSameDay,
         'Today: $title',
         body,
       );
+    } else {
+      print('Same-day notification time has already passed: ${notificationSameDay.toString()}');
     }
+  } catch (e) {
+    print('Error scheduling appointment reminder: $e');
+    rethrow;
   }
+}
 
   Future<void> _scheduleLocalNotification(DateTime scheduledDate, String title, String body) async {
     const androidDetails = AndroidNotificationDetails(

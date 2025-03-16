@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class CompanyHistoryScreen extends StatefulWidget {
-  const CompanyHistoryScreen({Key? key}) : super(key: key);
+  const CompanyHistoryScreen({super.key});
 
   @override
   State<CompanyHistoryScreen> createState() => _CompanyHistoryScreenState();

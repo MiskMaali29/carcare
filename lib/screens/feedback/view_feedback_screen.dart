@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 
 class ViewFeedbackScreen extends StatelessWidget {
-  const ViewFeedbackScreen({Key? key}) : super(key: key);
+  const ViewFeedbackScreen({super.key});
 
   Stream<QuerySnapshot> _getFeedbackStream() {
     return FirebaseFirestore.instance

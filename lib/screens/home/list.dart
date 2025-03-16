@@ -10,7 +10,7 @@ import 'welcome_screen.dart';
 class AppDrawer extends StatefulWidget {
   final String username;
 
-  const AppDrawer({Key? key, required this.username}) : super(key: key);
+  const AppDrawer({super.key, required this.username});
 
   @override
   _AppDrawerState createState() => _AppDrawerState();

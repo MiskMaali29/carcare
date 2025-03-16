@@ -6,12 +6,12 @@ import '../services/notification_service.dart';
 class CompanyViewAppointmentsScreen extends StatelessWidget {
   final NotificationService _notificationService = NotificationService();
   
-  CompanyViewAppointmentsScreen({Key? key}) : super(key: key);
+  CompanyViewAppointmentsScreen({super.key});
 
   Stream<QuerySnapshot> getAppointmentsStream() {
     return FirebaseFirestore.instance
         .collection('appointments')
-        .orderBy('created_at', descending: true)
+        .orderBy('appointment_date', descending: true)
         .snapshots();
   }
 
@@ -266,7 +266,7 @@ class CompanyViewAppointmentsScreen extends StatelessWidget {
           data['name'] ?? 'Unknown Customer',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(formatDate(data['created_at'])),
+        subtitle: Text(formatDate(data['appointment_date'])),
         children: [
           Padding(
             padding: const EdgeInsets.all(16),

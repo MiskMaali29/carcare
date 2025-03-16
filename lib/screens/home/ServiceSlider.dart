@@ -5,7 +5,7 @@ class ServiceSlider extends StatelessWidget {
   final double itemHeight;
   final double itemWidth;
 
-  const ServiceSlider({Key? key, this.itemHeight = 180, this.itemWidth = 250}) : super(key: key);
+  const ServiceSlider({super.key, this.itemHeight = 180, this.itemWidth = 250});
 
   Stream<QuerySnapshot> _getServices() {
     return FirebaseFirestore.instance.collection('services').snapshots();

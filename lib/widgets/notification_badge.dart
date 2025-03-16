@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationBadge extends StatefulWidget {
   final Widget child;
-  const NotificationBadge({Key? key, required this.child}) : super(key: key);
+  const NotificationBadge({super.key, required this.child});
 
   @override
   State<NotificationBadge> createState() => _NotificationBadgeState();

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 class ServiceDetails extends StatelessWidget {
   final Service service;
 
-  const ServiceDetails({Key? key, required this.service}) : super(key: key);
+  const ServiceDetails({super.key, required this.service});
 
   Widget _buildDetailRow(IconData icon, String title, String content) {
     return Column(

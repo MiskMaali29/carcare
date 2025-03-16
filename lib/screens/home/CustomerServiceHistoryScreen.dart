@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 class CustomerServiceHistoryScreen extends StatefulWidget {
   final String userId;
 
-  const CustomerServiceHistoryScreen({Key? key, required this.userId}) : super(key: key);
+  const CustomerServiceHistoryScreen({super.key, required this.userId});
 
   @override
   State<CustomerServiceHistoryScreen> createState() => _CustomerServiceHistoryScreenState();

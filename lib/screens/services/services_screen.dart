@@ -8,7 +8,7 @@ import '../../models/service.dart';
 import '../home/book_appointment_screen.dart';
 
 class ServicesScreen extends StatelessWidget {
-  const ServicesScreen({Key? key}) : super(key: key);
+  const ServicesScreen({super.key});
 
   Stream<QuerySnapshot> _getServices() {
     return FirebaseFirestore.instance
@@ -75,7 +75,7 @@ class ServicesScreen extends StatelessWidget {
 class ServiceCard extends StatelessWidget {
   final Service service;
 
-  const ServiceCard({Key? key, required this.service}) : super(key: key);
+  const ServiceCard({super.key, required this.service});
 
   Widget _getServiceIcon(String serviceName) {
      return ServiceIcons.getServiceIcon(serviceName);

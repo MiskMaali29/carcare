@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class ViewAppointmentsScreen extends StatelessWidget {
   final AppointmentService _appointmentService = AppointmentService();
 
-  ViewAppointmentsScreen({Key? key}) : super(key: key);
+  ViewAppointmentsScreen({super.key});
 
   String formatDate(dynamic date) {
     if (date == null) return 'Not set';
