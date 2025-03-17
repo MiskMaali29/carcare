@@ -2,15 +2,227 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class CompanyHistoryScreen extends StatelessWidget {
-  const CompanyHistoryScreen({Key? key}) : super(key: key);
+class CompanyHistoryScreen extends StatefulWidget {
+  const CompanyHistoryScreen({super.key});
 
-  Stream<QuerySnapshot> _getCompanyAppointments() {
-    return FirebaseFirestore.instance
-        .collection('appointments')
-        .orderBy('created_at', descending: true)
-        .snapshots();
+  @override
+  State<CompanyHistoryScreen> createState() => _CompanyHistoryScreenState();
+}
+
+class _CompanyHistoryScreenState extends State<CompanyHistoryScreen> {
+  String selectedFilter = 'today';
+  DateTime? selectedDate;
+  
+  Stream<QuerySnapshot> _getFilteredAppointments() {
+ var query = FirebaseFirestore.instance.collection('appointments');
+
+    try {
+    if (selectedFilter == 'custom' && selectedDate != null) {
+      final startOfDay = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+      return query
+          .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('created_at', isLessThan: Timestamp.fromDate(endOfDay))
+          .orderBy('created_at', descending: true)
+          .snapshots();
+    }
+
+    switch (selectedFilter) {
+      case 'today':
+        final today = DateTime.now();
+        final startOfDay = DateTime(today.year, today.month, today.day);
+        final endOfDay = startOfDay.add(const Duration(days: 1));
+        return query
+            .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+            .where('created_at', isLessThan: Timestamp.fromDate(endOfDay))
+            .orderBy('created_at', descending: true)
+            .snapshots();
+      
+      case 'yesterday':
+        final yesterday = DateTime.now().subtract(const Duration(days: 1));
+        final startOfDay = DateTime(yesterday.year, yesterday.month, yesterday.day);
+        final endOfDay = startOfDay.add(const Duration(days: 1));
+        return query
+            .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+            .where('created_at', isLessThan: Timestamp.fromDate(endOfDay))
+            .orderBy('created_at', descending: true)
+            .snapshots();
+      
+      case 'week':
+        final weekStart = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+        final startOfWeek = DateTime(weekStart.year, weekStart.month, weekStart.day);
+        return query
+            .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfWeek))
+            .orderBy('created_at', descending: true)
+            .snapshots();
+      
+      case 'month':
+        final now = DateTime.now();
+        final startOfMonth = DateTime(now.year, now.month, 1);
+        return query
+            .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+            .orderBy('created_at', descending: true)
+            .snapshots();
+      
+      default:
+        return query.orderBy('created_at', descending: true).snapshots();
+    }
+  } catch (e) {
+    print('Error in _getFilteredAppointments: $e');
+    return query.orderBy('created_at', descending: true).snapshots();
   }
+}
+  
+
+  Widget _buildFilterBar() {
+    
+  //     String getDisplayText() {
+  //   if (selectedFilter == 'custom' && selectedDate != null) {
+  //     return DateFormat('yyyy-MM-dd').format(selectedDate!);
+  //   }
+  //   switch (selectedFilter) {
+  //     case 'all': return 'All'; 
+  //     case 'today': return 'Today';
+  //     case 'yesterday': return 'Yesterday';
+  //     case 'week': return ' This Week';
+  //     case 'month': return 'This Month';
+  //     default: return 'All period ';  
+  //   }
+  // }
+
+  // ignore: unused_element
+  String getFilterText() {
+    if (selectedFilter == 'custom' && selectedDate != null) {
+      return DateFormat('yyyy-MM-dd').format(selectedDate!);
+    }
+    switch (selectedFilter) {
+      case 'today':
+        return 'Today';
+      case 'yesterday':
+        return 'yesterday';
+      case 'week':
+        return ' week';
+      case 'month':
+        return 'month ';
+      default:
+        return 'All ';
+    }
+  }
+
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+                  // Dropdown Menu
+
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+             child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value:   selectedFilter == 'custom' ? 'all' : selectedFilter,
+                isExpanded: true,
+                items: const [
+                  
+                   DropdownMenuItem(value: 'all', child: Text('All ')),
+                   DropdownMenuItem(value: 'today', child: Text('Today')),
+                   DropdownMenuItem(value: 'yesterday', child: Text('Yesterday')),
+                   DropdownMenuItem(value: 'week', child: Text('Week ')),
+                   DropdownMenuItem(value: 'month', child: Text('Month')),
+                  
+                ],
+             
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      selectedFilter = value;
+                    
+                        selectedDate = null;
+                      
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+        ),
+        // Calendar Button
+
+        const SizedBox(width: 12),
+        if (selectedDate != null)
+                  Expanded(
+  child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF026DFE).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Text(
+                DateFormat('yyyy-MM-dd').format(selectedDate!),
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        const SizedBox(width: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF026DFE).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.calendar_today, color: Color(0xFF026DFE)),
+            onPressed: () => _selectDate(context),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+   Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        selectedDate = picked;
+        selectedFilter = 'custom';
+      });
+    }
+  }
+
+
+// class CompanyHistoryScreen extends StatefulWidget  {
+//   const CompanyHistoryScreen({Key? key}) : super(key: key);
+
+//   Stream<QuerySnapshot> _getCompanyAppointments() {
+//     return FirebaseFirestore.instance
+//         .collection('appointments')
+//         .orderBy('created_at', descending: true)
+//         .snapshots();
+//   }
+
+
+
 
   String formatDate(dynamic timestamp) {
     if (timestamp == null) return 'N/A';
@@ -68,46 +280,79 @@ class CompanyHistoryScreen extends StatelessWidget {
   }
 
   Future<void> _updateServicePrice(BuildContext context, String appointmentId, double currentPrice) async {
-    double newPrice = currentPrice;
-    
-    return showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Update Service Price'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'New Price',
-                prefixText: '\$',
-              ),
-              onChanged: (value) {
-                newPrice = double.tryParse(value) ?? currentPrice;
-              },
+  double newPrice = currentPrice;
+  String note = ''; 
+  
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Update Service Details'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'New Price',
+              prefixText: '\$',
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection('appointments')
-                  .doc(appointmentId)
-                  .update({'amount_paid': newPrice});
-              Navigator.pop(context);
+            onChanged: (value) {
+              newPrice = double.tryParse(value) ?? currentPrice;
             },
-            child: const Text('Update'),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            maxLines: 3,     
+            decoration: const InputDecoration(
+              labelText: 'Add Note',
+              hintText: 'Enter note for customer',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              note = value;
+            },
           ),
         ],
       ),
-    );
-  }
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            try {
+              // تحديث السعر والملاحظة وحالة الدفع
+              await FirebaseFirestore.instance
+                  .collection('appointments')
+                  .doc(appointmentId)
+                  .update({
+                'amount_paid': newPrice,
+                'service_note': note,
+                'payment_status': 'Paid', // تغيير حالة الدفع تلقائياً
+                'note_timestamp': FieldValue.serverTimestamp(),
+              });
+              
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Service details updated successfully!')),
+                );
+                Navigator.pop(context);
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error updating service: $e')),
+                );
+              }
+            }
+          },
+          child: const Text('Update'),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Card(
@@ -140,41 +385,45 @@ class CompanyHistoryScreen extends StatelessWidget {
     );
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Service History'),
         backgroundColor: const Color(0xFF026DFE),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: _getCompanyAppointments(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Column(
+        children: [
+          _buildFilterBar(),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _getFilteredAppointments(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
 
-          final appointments = snapshot.data?.docs ?? [];
+                final appointments = snapshot.data?.docs ?? [];
 
-          if (appointments.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No service history found',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
+                if (appointments.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.history, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No service history found',
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
           // Calculate statistics
           int totalAppointments = appointments.length;
@@ -231,9 +480,25 @@ class CompanyHistoryScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   itemBuilder: (context, index) {
                     final doc = appointments[index];
-                    final data = doc.data() as Map<String, dynamic>;
+                    return _buildAppointmentCard(doc);
+  },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+                    // final data = doc.data() as Map<String, dynamic>;
+                    // final amount = double.tryParse(data['amount_paid']?.toString() ?? '0') ?? 0.0;
+                  Widget _buildAppointmentCard(DocumentSnapshot doc) {
+                   final data = doc.data() as Map<String, dynamic>;
                     final amount = double.tryParse(data['amount_paid']?.toString() ?? '0') ?? 0.0;
-                    
+    
                     return Card(
                       elevation: 2,
                       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -296,12 +561,52 @@ class CompanyHistoryScreen extends StatelessWidget {
                                 _buildInfoRow('Car Type', data['car_type'] ?? 'N/A'),
                                 _buildInfoRow('Card Number', data['card_number'] ?? 'N/A'),
                                 
+
+                                FutureBuilder<String>(
+                                future: _getServiceName(data['service_id'] ?? ''),
+                                builder: (context, snapshot) {
+                                return _buildInfoRow(
+                                'Service',
+                                snapshot.data ?? 'Loading...',
+      );
+    },
+  ),
                                 if (data['approval_status'] == 'rejected')
                                   _buildInfoRow(
                                     'Rejection Reason',
                                     data['rejection_reason'] ?? 'No reason provided',
                                     isError: true
                                   ),
+
+                                   if (data['service_note'] != null && data['service_note'].toString().isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(),
+                  const Text(
+                    'Service Note:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Text(
+                      data['service_note'],
+                      style: const TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
                                 const SizedBox(height: 12),
                                 
@@ -337,16 +642,8 @@ class CompanyHistoryScreen extends StatelessWidget {
                         ],
                       ),
                     );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
+                  }
+        
   Widget _buildInfoRow(String label, String value, {bool isError = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),

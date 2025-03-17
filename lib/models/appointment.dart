@@ -14,6 +14,8 @@ class Appointment {
   final String approvalStatus;
   final String? rejectionReason; // يمكن أن يكون null إذا لم يتم رفض الحجز
   final String userId;
+  final String? serviceNote; // إضافة حقل الملاحظات
+
 
   Appointment({
     required this.id,
@@ -31,6 +33,7 @@ class Appointment {
     required this.approvalStatus,
     this.rejectionReason,
     required this.userId,
+    this.serviceNote,
   });
 
   // Convert Firestore document to Appointment object
@@ -49,8 +52,9 @@ class Appointment {
       serviceStatus: data['service_status'] ?? 'Booked',
       serviceName: data['service_name'] ?? '',
       approvalStatus: data['approval_status'] ?? 'pending',
-      rejectionReason: data['rejection_reason'], // قد تكون null
+      rejectionReason: data['rejection_reason'], //   
       userId: data['user_id'] ?? '',
+      serviceNote: data['service_note'], //   
     );
   }
 
@@ -71,6 +75,7 @@ class Appointment {
       'amount_paid': amountPaid,
       'rejection_reason': rejectionReason,
       'user_id': userId,
+      'service_note': serviceNote,
     };
   }
 }

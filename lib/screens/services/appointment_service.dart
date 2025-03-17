@@ -16,6 +16,8 @@ class AppointmentService {
         throw Exception('No authenticated user found');
       }
 
+      
+
       // Add necessary fields
       final enhancedData = {
         ...appointmentData,

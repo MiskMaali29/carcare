@@ -1,14 +1,23 @@
 import 'package:carcare/models/service.dart';
 
 import 'package:carcare/screens/services/appointment_service.dart';
+import 'package:carcare/screens/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
+import '../../widgets/notification_overlay.dart';
 import 'view_appointments_screen.dart';
 
 class BookAppointmentScreen extends StatefulWidget {
-  const BookAppointmentScreen({Key? key}) : super(key: key);
+final String? initialServiceId;
+
+const BookAppointmentScreen({
+    super.key, 
+    this.initialServiceId  
+  });
+
 
   @override
   _BookAppointmentScreenState createState() => _BookAppointmentScreenState();
@@ -22,12 +31,47 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   final _phoneNumberController = TextEditingController();
   final _appointmentService = AppointmentService();
   final _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
 
   DateTime selectedDate = DateTime.now();
   TimeOfDay? selectedTime;
   String? selectedVehicleType;
   String? selectedServiceId;
   bool _isLoading = false;
+
+   @override
+  void initState() {
+    super.initState();
+      _loadUserData();
+
+    if (widget.initialServiceId != null) {
+      setState(() {
+        selectedServiceId = widget.initialServiceId;
+      });
+    }
+  }
+
+  Future<void> _loadUserData() async {
+  try {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final userData = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+          
+      if (userData.exists) {
+        setState(() {
+          _nameController.text = userData.get('fullName') ?? '';
+          _phoneNumberController.text = userData.get('phone') ?? '';
+        });
+      }
+    }
+  } catch (e) {
+    print('Error loading user data: $e');
+  }
+}
 
   @override
   void dispose() {
@@ -62,6 +106,15 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
       final service = Service.fromFirestore(serviceSnapshot.data()!, serviceSnapshot.id);
 
+
+ final DateTime appointmentDateTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      selectedTime!.hour,
+      selectedTime!.minute,
+    );
+
       final appointmentData = {
         'name': _nameController.text.trim(),
         'card_number': _cardNumberController.text.trim(),
@@ -72,7 +125,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         'service_name': service.name,
         'service_price': service.price,
         'amount_paid': service.price,
-        'appointment_date': Timestamp.fromDate(selectedDate),
+        'appointment_date': Timestamp.fromDate(appointmentDateTime),
         'appointment_time': '${selectedTime!.hour}:${selectedTime!.minute.toString().padLeft(2, '0')}',
         'service_status': 'Booked',
         'payment_status': 'Not Paid',
@@ -81,8 +134,26 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       };
 
       await _appointmentService.addAppointment(appointmentData);
+      final notificationService = NotificationService();
+      await notificationService.initialize(); 
+      await notificationService.scheduleAppointmentReminder(
+        appointmentDateTime,
+        'Upcoming Appointment',
+        'You have a ${service.name} appointment tomorrow at ${selectedTime!.format(context)}'
+      );
 
-      if (mounted) {
+      
+      
+
+  if (mounted) {
+        NotificationOverlay.show(
+          context,
+          'Appointment Booked',
+          'Your appointment for ${service.name} has been scheduled successfully!',
+        );
+      }
+      
+      //if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Appointment booked successfully!')),
         );
@@ -90,15 +161,25 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
           context,
           MaterialPageRoute(builder: (context) => ViewAppointmentsScreen()),
         );
-      }
-    } catch (e) {
+      
+     } catch (e) {
+    print('Error booking appointment: $e');
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to book appointment: $e')),
+        SnackBar(content: Text('Failed to book appointment: ${e.toString()}')),
       );
-    } finally {
+    }
+  } finally {
+    if (mounted) {
       setState(() => _isLoading = false);
     }
   }
+
+   
+}
+
+
+
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -139,84 +220,98 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   
 
-  Widget buildBottomSection() {
-    return Column(
-      children: [
-        // First Row: Select Date and Select Time
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Column(
-              children: [
-              ElevatedButton(
-  onPressed: () => _selectDate(context),
-  style: ElevatedButton.styleFrom(
-    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
-    backgroundColor: const Color.fromARGB(255, 114, 173, 255),
-    foregroundColor: Colors.black,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-  child: const Column(
-    mainAxisSize: MainAxisSize.min, // لجعل العناصر داخل الزر متناسقة
-    children: [
-      Icon(Icons.calendar_today, size: 30, color: Color(0xFF026DFE)),
-      SizedBox(height: 8),
-      Text('Choose Date' ,style: TextStyle(fontSize: 16))
-    ],
-  ),
-),
+Widget buildBottomSection() {
+ return Column(
+   children: [
+     Row(
+       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+       children: [
+         Container(
+           decoration: BoxDecoration(
+             color: const Color.fromARGB(255, 114, 173, 255),
+             borderRadius: BorderRadius.circular(12),
+           ),
+           child: Material(
+             color: Colors.transparent,
+             child: InkWell(
+               onTap: () => _selectDate(context),
+               borderRadius: BorderRadius.circular(12),
+               child: Padding(
+                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                 child: Column(
+                   mainAxisSize: MainAxisSize.min,
+                   children: [
+                     const Icon(Icons.calendar_today, size: 30, color: Color(0xFF026DFE)),
+                     const SizedBox(height: 8),
+                    // const Text('Choose Date', style: TextStyle(fontSize: 16, color: Colors.black)),
+                     const SizedBox(height: 4),
+                     Text(
+                       DateFormat('MMM dd, yyyy').format(selectedDate),
+                       style: const TextStyle(
+                         fontSize: 14,
+                         fontWeight: FontWeight.bold,
+                         color: Color(0xFF026DFE)
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+             ),
+           ),
+         ),
+         Container(
+           decoration: BoxDecoration(
+             color: const Color.fromARGB(255, 114, 173, 255),
+             borderRadius: BorderRadius.circular(12),
+           ),
+           child: Material(
+             color: Colors.transparent,
+             child: InkWell(
+               onTap: () => _selectTime(context),
+               borderRadius: BorderRadius.circular(12),
+               child: Padding(
+                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                 child: Column(
+                   mainAxisSize: MainAxisSize.min,
+                   children: [
+                     const Icon(Icons.access_time, size: 30, color: Color(0xFF026DFE)),
+                     const SizedBox(height: 8),
+                   //  const Text('Choose Time', style: TextStyle(fontSize: 16, color: Colors.black)),
+                     const SizedBox(height: 4),
+                     Text(
+                       selectedTime?.format(context) ?? 'Not Selected',
+                       style: const TextStyle(
+                         fontSize: 14,
+                         fontWeight: FontWeight.bold,
+                         color: Color(0xFF026DFE)
+                       ),
+                     ),
+                   ],
+                 ),
+               ),
+             ),
+           ),
+         ),
+       ],
+     ),
+     const SizedBox(height: 20),
+     ElevatedButton(
+       onPressed: _isLoading ? null : _bookAppointment,
+       style: ElevatedButton.styleFrom(
+         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 110),
+         backgroundColor: const Color(0xFF026DFE),
+         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+       ),
+       child: _isLoading
+         ? const CircularProgressIndicator(color: Colors.white)
+         : const Text('Book Appointment', style: TextStyle(fontSize: 16, color: Colors.white)),
+     ),
+   ],
+ );
+}
 
-              ],
-            ),
-            Column(
-              children: [
-                
-                ElevatedButton(
-                  onPressed: () => _selectTime(context),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 32),
-                    backgroundColor: const Color.fromARGB(255, 114, 173, 255),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Column(
-    mainAxisSize: MainAxisSize.min, // لجعل العناصر داخل الزر متناسقة
-    children: [
-      Icon(Icons.access_time, size: 30, color: Color(0xFF026DFE)),
-      SizedBox(height: 8),
-      Text('Choose Time', style: TextStyle(fontSize: 16))
-    ],
-  ),
-),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        // Second Row: Book Appointment
-        Center(
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _bookAppointment,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 110),
-              backgroundColor: const  Color(0xFF026DFE),
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: _isLoading
-                ? const CircularProgressIndicator(color: Color.fromARGB(255, 0, 105, 252))
-                : const Text('Book Appointment', style: TextStyle(fontSize: 16)),
-          ),
-        ),
-      ],
-    );
-  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +325,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         ),
          actions: [
         IconButton(
-          icon: const Icon(Icons.event_note, size: 26), // أيقونة محسّنة
+          icon: const Icon(Icons.event_note, size: 26), 
           onPressed: () {
             Navigator.push(
               context,

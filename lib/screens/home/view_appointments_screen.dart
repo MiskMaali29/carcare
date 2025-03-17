@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 class ViewAppointmentsScreen extends StatelessWidget {
   final AppointmentService _appointmentService = AppointmentService();
 
-  ViewAppointmentsScreen({Key? key}) : super(key: key);
+  ViewAppointmentsScreen({super.key});
 
   String formatDate(dynamic date) {
     if (date == null) return 'Not set';
@@ -16,6 +16,13 @@ class ViewAppointmentsScreen extends StatelessWidget {
       return DateFormat('EEE, MMM d, yyyy').format(date.toDate());
     }
     return date.toString();
+  }
+
+  bool _canCancelAppointment(Timestamp appointmentDate) {
+    final appointmentDateTime = appointmentDate.toDate();
+    final now = DateTime.now();
+    final difference = appointmentDateTime.difference(now);
+    return difference.inHours > 24;
   }
 
   Future<void> _deleteAppointment(BuildContext context, String appointmentId) async {
@@ -34,6 +41,7 @@ class ViewAppointmentsScreen extends StatelessWidget {
       }
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -111,13 +119,17 @@ class ViewAppointmentsScreen extends StatelessWidget {
                           _buildRow(Icons.credit_card_outlined, 'Card Number', data['card_number']),
                           _buildRow(Icons.car_repair, 'Service ID', data['service_id']),
                           _buildRow(Icons.directions_car_outlined, 'Car Type', data['car_type']),
-                          const SizedBox(height: 16),
+
+                          
+                          const SizedBox(height: 12),
                           SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 _buildChip('Payment', data['payment_status'], Colors.green, Colors.red),
+                                    const SizedBox(width: 16),       
+
                                 _buildChip('Status', data['service_status'], Colors.blue, Colors.orange),
                               ],
                             ),
@@ -127,9 +139,9 @@ class ViewAppointmentsScreen extends StatelessWidget {
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                onPressed: () {
-                                  _showDeleteConfirmation(context, appointmentId);
-                                },
+                              onPressed: () {
+                                  _showDeleteConfirmation(context, appointmentId, data['appointment_date']);
+                                 },
                                 style: TextButton.styleFrom(
                                   foregroundColor: Colors.red,
                                 ),
@@ -178,45 +190,42 @@ class ViewAppointmentsScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, String appointmentId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Appointment'),
-          content: const Text('Are you sure you want to delete this appointment?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteAppointment(context, appointmentId);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
+void _showDeleteConfirmation(BuildContext context, String appointmentId, Timestamp appointmentDate) {
+  if (!_canCancelAppointment(appointmentDate)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Appointments cannot be cancelled within 24 hours of scheduled time'),
+        backgroundColor: Colors.red,
+      ),
     );
+    return;
   }
+     
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Cancel Appointment'),
+        content: const Text('Are you sure you want to cancel this appointment?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteAppointment(context, appointmentId);
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
-  // ignore: unused_element
-  Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-        return Colors.green;
-      case 'in progress':
-        return Colors.orange;
-      case 'booked':
-        return Colors.blue;
-      default:
-        return Colors.grey;
-    }
-  }
 }

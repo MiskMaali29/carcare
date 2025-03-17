@@ -2,16 +2,23 @@
 
 import 'package:carcare/screens/auth/company_login_screen.dart';
 import 'package:carcare/screens/auth/company_signup_screen.dart';
+import 'package:carcare/screens/auth/forget_password_screen.dart';
 import 'package:carcare/screens/company/CompanyServiceHistoryScreen.dart';
 import 'package:carcare/screens/company/company_view_appointments_screen.dart';
+import 'package:carcare/screens/feedback/feedback_screen.dart';
+import 'package:carcare/screens/feedback/view_feedback_screen.dart';
 import 'package:carcare/screens/home/CustomerServiceHistoryScreen.dart';
-import 'package:carcare/screens/home/setting_screen.dart';
+import 'package:carcare/screens/home/list.dart';
+import 'package:carcare/screens/home/profile.dart';
+import 'package:carcare/screens/home/about_us.dart';
+import 'package:carcare/screens/home/settings_screen.dart';
 import 'package:carcare/screens/home/view_appointments_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';  
 import 'firebase_options.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'screens/company/company_dashboard_screen.dart';
 import 'screens/company/manage_services_screen.dart';
 
@@ -22,15 +29,29 @@ import 'screens/auth/register_screen.dart';
 // Main screens
 import 'screens/home/welcome_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/notifications/notifications_screen.dart';
+import 'screens/services/notification_service.dart';
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+
   );
+
+   await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
+    appleProvider: AppleProvider.debug,
+  );
+
+
+final notificationService = NotificationService();
+  await notificationService.initialize();
+
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -90,17 +111,35 @@ class MyApp extends StatelessWidget {
           );
         },
       ),
+
       routes: {
-      ' /welcome': (context) => const WelcomeScreen(),
+        ' /welcome': (context) => const WelcomeScreen(),
         '/login_customer': (context) => const LoginScreen(),
         '/login_company': (context) => const CompanyLoginScreen(),
         '/signup': (context) => const RegisterScreen(),
         '/company_signup': (context) => const CompanyRegisterScreen(),
-        '/company_appointments': (context) => const CompanyViewAppointmentsScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/company_appointments': (context) =>  CompanyViewAppointmentsScreen(),
         '/user_appointments': (context) =>  ViewAppointmentsScreen(),
         '/manage_services': (context) => const ManageServicesScreen(),
         '/company_history': (context) => const CompanyHistoryScreen(),
-        '/about_us': (context) => const AboutUsScreen(),
+         '/Notificatiosns_Screen': (context) => const NotificationsScreen(),
+        '/about_us': (context) => const AboutUsScreen(username: '',),
+         '/settings': (context) => const SettingsScreen(),
+         
+        '/profile': (context) => ProfileScreen(
+              username: FirebaseAuth.instance.currentUser?.email ?? 'User',
+            ),
+        
+        '/list': (context) => AppDrawer(
+              username: FirebaseAuth.instance.currentUser?.email ?? 'User',
+            ),
+            '/add_feedback': (context) => const AddFeedbackScreen(
+  appointmentId: '',  // Pass this from appointment details
+  serviceId: '',      // Pass this from appointment details
+  serviceName: '',    // Pass this from appointment details
+),
+'/view_feedback': (context) => const ViewFeedbackScreen(),
         '/customer_history': (context) => CustomerServiceHistoryScreen(
         userId: FirebaseAuth.instance.currentUser!.uid,
       ),
@@ -149,7 +188,6 @@ class MyApp extends StatelessWidget {
           child: Stack(
             children: [
               child!,
-              // You can add global error handling or overlays here
             ],
           ),
         );

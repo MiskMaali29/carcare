@@ -1,12 +1,13 @@
+import 'package:carcare/screens/feedback/feedback_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'dart:developer' as developer;
+
 
 class CustomerServiceHistoryScreen extends StatefulWidget {
   final String userId;
 
-  const CustomerServiceHistoryScreen({Key? key, required this.userId}) : super(key: key);
+  const CustomerServiceHistoryScreen({super.key, required this.userId});
 
   @override
   State<CustomerServiceHistoryScreen> createState() => _CustomerServiceHistoryScreenState();
@@ -22,12 +23,7 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
   }
 
   Widget _buildServiceTitle(Map<String, dynamic> appointmentData) {
-    developer.log('==== Appointment Data ====');
-    developer.log('Service ID: ${appointmentData['service_id']}');
-    developer.log('All Fields: ${appointmentData.keys.toList()}');
-
     if (appointmentData['service_id'] == null) {
-      developer.log('No service_id found in appointment');
       return const Text(
         'No Service ID',
         style: TextStyle(
@@ -49,7 +45,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
         }
 
         if (snapshot.hasError) {
-          developer.log('Error fetching service: ${snapshot.error}');
           return Text(
             'Error: ${snapshot.error}',
             style: const TextStyle(color: Colors.red),
@@ -57,7 +52,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
         }
 
         if (!snapshot.hasData || !snapshot.data!.exists) {
-          developer.log('No service found for ID: ${appointmentData['service_id']}');
           return Text(
             'Service not found (ID: ${appointmentData['service_id']})',
             style: const TextStyle(
@@ -69,10 +63,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
         }
 
         final serviceData = snapshot.data!.data() as Map<String, dynamic>;
-        developer.log('==== Service Data ====');
-        developer.log('Service Fields: ${serviceData.keys.toList()}');
-        developer.log('Service Name: ${serviceData['name']}');
-
         return Text(
           serviceData['name'] ?? 'Unnamed Service',
           style: const TextStyle(
@@ -84,10 +74,74 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
     );
   }
 
+  Widget _buildFeedbackButton(Map<String, dynamic> data, String appointmentId) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('feedback')
+          .where('appointment_id', isEqualTo: appointmentId)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Text(
+                  'Feedback Submitted',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ElevatedButton.icon(
+          onPressed: () async {
+            DocumentSnapshot serviceDoc = await FirebaseFirestore.instance
+                .collection('services')
+                .doc(data['service_id'])
+                .get();
+                
+            if (context.mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddFeedbackScreen(
+                    appointmentId: appointmentId,
+                    serviceId: data['service_id'] ?? '',
+                    serviceName: (serviceDoc.data() as Map<String, dynamic>)['name'] ?? 'Unknown Service',
+                  ),
+                ),
+              );
+            }
+          },
+          icon: const Icon(Icons.star_rate),
+          label: const Text('Leave Feedback'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF026DFE),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    developer.log('Building CustomerServiceHistoryScreen for user: ${widget.userId}');
-    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Service History'),
@@ -97,7 +151,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
         stream: _getCustomerAppointments(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            developer.log('Error in StreamBuilder: ${snapshot.error}');
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
@@ -106,7 +159,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
           }
 
           final appointments = snapshot.data?.docs ?? [];
-          developer.log('Found ${appointments.length} appointments');
 
           if (appointments.isEmpty) {
             return const Center(
@@ -130,7 +182,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
             itemBuilder: (context, index) {
               final doc = appointments[index];
               final data = doc.data() as Map<String, dynamic>;
-              developer.log('Processing appointment ${index + 1}: ${doc.id}');
 
               return Card(
                 elevation: 2,
@@ -156,13 +207,85 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
                           _buildInfoRow('Amount', '\$${data['amount_paid'] ?? '0.00'}'),
                           _buildInfoRow('Car Type', data['car_type'] ?? 'N/A'),
                           _buildInfoRow('Appointment Time', data['appointment_time'] ?? 'N/A'),
-                          _buildInfoRow('Service ID', data['service_id']?.toString() ?? 'N/A'),
+FutureBuilder<DocumentSnapshot>(
+  future: FirebaseFirestore.instance
+      .collection('services')
+      .doc(data['service_id'].toString())
+      .get(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return _buildInfoRow('Service', 'Loading...');
+    }
+
+    if (!snapshot.hasData || !snapshot.data!.exists) {
+      return _buildInfoRow('Service', 'Service not found');
+    }
+
+    final serviceData = snapshot.data!.data() as Map<String, dynamic>;
+    return _buildInfoRow(
+      'Service',
+      serviceData['name'] ?? 'Unnamed Service',
+    );
+  },
+),
+                           // Add Note Section
+            if (data['service_note'] != null && data['service_note'].toString().isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(height: 24),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.note_alt,
+                              size: 20,
+                              color: Color(0xFF026DFE),
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Service Note:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color(0xFF026DFE),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          data['service_note'],
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
                           if (data['approval_status'] == 'rejected')
                             _buildInfoRow(
                               'Rejection Reason', 
                               data['rejection_reason'] ?? 'No reason provided',
                               isError: true
                             ),
+                          const SizedBox(height: 16),
+                          if (data['service_status'] == 'Completed')
+                            Center(child: _buildFeedbackButton(data, doc.id)),
                         ],
                       ),
                     ),
@@ -186,7 +309,6 @@ class _CustomerServiceHistoryScreenState extends State<CustomerServiceHistoryScr
       }
       return timestamp.toString();
     } catch (e) {
-      developer.log('Error formatting date: $e');
       return 'N/A';
     }
   }
